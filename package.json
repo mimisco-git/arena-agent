@@ -1,0 +1,20 @@
+{
+  "name": "arena-agent",
+  "version": "1.0.0",
+  "description": "Moltiverse Gaming Arena Agent — autonomous wagering & tournaments on Monad",
+  "scripts": {
+    "start": "node backend/server.js",
+    "deploy": "node scripts/deploy.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "ethers": "^6.11.0",
+    "express": "^4.21.2",
+    "groq-sdk": "^0.15.0",
+    "uuid": "^11.0.5"
+  },
+  "devDependencies": {
+    "solc": "^0.8.33"
+  }
+}
