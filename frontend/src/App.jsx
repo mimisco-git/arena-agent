@@ -5,7 +5,7 @@ import CreateModal  from "./components/CreateModal"
 import Leaderboard  from "./components/Leaderboard"
 
 // IMPORTANT: Replace this with your Railway backend URL after deployment
-const BACKEND = import.meta.env.VITE_BACKEND_URL || "https://your-app.up.railway.app"
+const BACKEND = import.meta.env.VITE_BACKEND_URL || "https://arena-agent-backend.onrender.com"
 
 // ── SVG icon components ──
 export const Icons = {
