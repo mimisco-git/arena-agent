@@ -100,7 +100,7 @@ html, body {
   display: none;
   align-items: center;
   gap: 12px;
-  opacity: 0.08;
+  opacity: 0.1;
   pointer-events: none;
   z-index: 0;
   transition: opacity 0.3s ease;
@@ -108,31 +108,6 @@ html, body {
 
 [data-theme="dark"] .watermark {
   display: flex;
-}
-
-.watermark-icon {
-  width: 80px;
-  height: 80px;
-  background: var(--grad-primary);
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.watermark-icon svg {
-  width: 45px;
-  height: 45px;
-  color: #fff;
-}
-
-.watermark-text {
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: -1px;
-  background: var(--grad-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 /* ── Animated gradient orbs (background atmosphere) ── */
@@ -183,13 +158,9 @@ html, body {
   gap: 10px;
   text-decoration: none;
 }
-.navbar-logo .logo-icon {
-  width: 34px; height: 34px;
-  background: var(--grad-primary);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
+.navbar-logo img {
+  flex-shrink: 0;
 }
-.navbar-logo .logo-icon svg { width: 18px; height: 18px; }
 .navbar-logo .logo-text { font-size: 19px; font-weight: 700; color: var(--text); letter-spacing: -.3px; }
 .navbar-logo .logo-text span { background: var(--grad-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
@@ -559,13 +530,12 @@ html, body {
   color: var(--text-sub);
 }
 .empty-state .empty-icon {
-  width: 64px; height: 64px;
+  width: 80px; height: 80px;
   margin: 0 auto 18px;
-  background: rgba(124,92,252,.1);
-  border-radius: 18px;
   display: flex; align-items: center; justify-content: center;
 }
-.empty-state .empty-icon svg { width: 32px; height: 32px; }
+.empty-state .empty-icon svg,
+.empty-state .empty-icon img { width: 64px; height: 64px; }
 .empty-state p { font-size: 15px; }
 
 /* Scrollbar */

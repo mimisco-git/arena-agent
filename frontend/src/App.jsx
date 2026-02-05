@@ -225,18 +225,13 @@ export default function App() {
 
       {/* Watermark (dark mode only) */}
       <div className="watermark">
-        <div className="watermark-icon">
-          <Icons.Stadium />
-        </div>
-        <div className="watermark-text">Arena Agent</div>
+        <img src="/logo.svg" alt="Arena Agent" style={{ width: '120px', height: '120px', opacity: 0.6 }} />
       </div>
 
       {/* Navbar */}
       <nav className="navbar">
         <div className="navbar-logo">
-          <div className="logo-icon">
-            <Icons.Stadium />
-          </div>
+          <img src="/logo-icon.svg" alt="Arena Agent" style={{ width: '34px', height: '34px' }} />
           <div className="logo-text"><span>Arena</span> Agent</div>
         </div>
 
@@ -311,7 +306,7 @@ export default function App() {
 
             {loading
               ? <div className="empty-state">
-                  <div className="empty-icon"><Icons.Stadium /></div>
+                  <div className="empty-icon"><img src="/logo-icon.svg" alt="Loading" style={{ width: '64px', height: '64px', opacity: 0.8 }} /></div>
                   <p>Loading arenas…</p>
                 </div>
               : <ArenaList arenas={arenas} onSelect={setSelected} />

@@ -1,0 +1,56 @@
+<svg width="800" height="200" viewBox="0 0 800 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7c5cfc;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#a78bfa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#22d3ee;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#7c5cfc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#22d3ee;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Icon Part -->
+  <g transform="translate(50, 50)">
+    <!-- Background Circle -->
+    <circle cx="50" cy="50" r="45" fill="url(#logoGrad)"/>
+    
+    <!-- Arena Hexagon -->
+    <path d="M 50 15 L 75 32 L 75 68 L 50 85 L 25 68 L 25 32 Z" 
+          fill="rgba(255,255,255,0.2)" 
+          stroke="rgba(255,255,255,0.4)" 
+          stroke-width="2"/>
+    
+    <!-- Inner Hexagon -->
+    <path d="M 50 25 L 65 35 L 65 65 L 50 75 L 35 65 L 35 35 Z" 
+          fill="none" 
+          stroke="white" 
+          stroke-width="3"/>
+    
+    <!-- Center "A" -->
+    <path d="M 50 38 L 42 62 M 50 38 L 58 62 M 44 54 L 56 54" 
+          stroke="white" 
+          stroke-width="4" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+  </g>
+  
+  <!-- Text Part -->
+  <g transform="translate(180, 0)">
+    <!-- "ARENA" -->
+    <text x="0" y="85" font-family="Inter, sans-serif" font-size="72" font-weight="800" fill="url(#textGrad)" letter-spacing="-2">
+      ARENA
+    </text>
+    
+    <!-- "AGENT" -->
+    <text x="0" y="135" font-family="Inter, sans-serif" font-size="48" font-weight="600" fill="#6b7a95" letter-spacing="-1">
+      AGENT
+    </text>
+    
+    <!-- Tagline -->
+    <text x="2" y="170" font-family="Inter, sans-serif" font-size="18" font-weight="500" fill="#4a5568" letter-spacing="0.5">
+      AI-Powered Gaming Arena
+    </text>
+  </g>
+</svg>
