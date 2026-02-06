@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react"
-import ArenaList    from "./components/Leaderboard"
+import ArenaList    from "./components/ArenaList"
 import ArenaDetail  from "./components/ArenaDetail"
 import CreateModal  from "./components/CreateModal"
 import Leaderboard  from "./components/Leaderboard"
 
-const BACKEND = import.meta.env.VITE_BACKEND_URL || "https://arena-agent-backend.onrender.com"
+const BACKEND = import.meta.env.VITE_BACKEND_URL || "https://arena-agent-backend.onrender.com/api"
 
 // ── SVG icon components ──
 export const Icons = {
