@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
-import ArenaList    from "./components/ArenaList"
+import ArenaList    from "./components/Leaderboard"
 import ArenaDetail  from "./components/ArenaDetail"
 import CreateModal  from "./components/CreateModal"
 import Leaderboard  from "./components/Leaderboard"
@@ -74,15 +74,35 @@ export const Icons = {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
     </svg>
-  )
+  ),
+  Droplet: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+    </svg>
+  ),
+  Twitter: () => (
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
+  ),
+  Github: () => (
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+    </svg>
+  ),
+  Share: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+    </svg>
+  ),
 }
 
-// ── game type config ──
+// ── game type config with Monad official colors ──
 export const GAME_CONFIG = [
-  { label: "Prediction", color: "#22d3ee", Icon: Icons.Crystal },
-  { label: "Trivia",     color: "#a78bfa", Icon: Icons.BookOpen },
-  { label: "Trading",    color: "#34d399", Icon: Icons.TrendingUp },
-  { label: "Strategy",   color: "#fbbf24", Icon: Icons.Layers },
+  { label: "Prediction", color: "#85E6FF", Icon: Icons.Crystal },
+  { label: "Trivia",     color: "#DDD7FE", Icon: Icons.BookOpen },
+  { label: "Trading",    color: "#B9E3F9", Icon: Icons.TrendingUp },
+  { label: "Strategy",   color: "#FFAE45", Icon: Icons.Layers },
 ]
 
 export default function App() {
@@ -95,133 +115,67 @@ export default function App() {
   const [loading, setLoading]         = useState(true)
   const [mobileNav, setMobileNav]     = useState(false)
   const [theme, setTheme]             = useState(() => {
-    // Load theme from localStorage or default to 'light'
     return localStorage.getItem('arena-theme') || 'light'
   })
 
-  // ── Apply theme to document ──
+  // Apply theme to document root
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
     localStorage.setItem('arena-theme', theme)
   }, [theme])
 
-  // ── Toggle theme ──
-  function toggleTheme() {
+  const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light')
   }
 
-  // ── fetch arenas ──
-  const fetchArenas = useCallback(async () => {
+  const fetchArenas = useCallback(async() => {
     try {
-      const r = await fetch(`${BACKEND}/api/arenas`)
-      const d = await r.json()
-      setArenas(d.arenas || [])
-    } catch (e) { console.error(e) }
+      const res = await fetch(`${BACKEND}/arenas`)
+      if (!res.ok) throw new Error("Failed to fetch arenas")
+      const data = await res.json()
+      setArenas(data)
+    } catch(e) { console.error(e); showToast("Failed to load arenas") }
     finally { setLoading(false) }
   }, [])
 
-  useEffect(() => { fetchArenas() }, [fetchArenas])
-  useEffect(() => {
-    const t = setInterval(fetchArenas, 8000)
-    return () => clearInterval(t)
-  }, [fetchArenas])
+  useEffect(()=>{ fetchArenas() }, [fetchArenas])
 
-  // ── toast auto-dismiss ──
-  useEffect(() => {
-    if (!toast) return
-    const t = setTimeout(() => setToast(null), 3200)
-    return () => clearTimeout(t)
-  }, [toast])
-
-  // ── wallet ──
-  async function connectWallet() {
-    if (wallet) { setWallet(null); return }
-    if (!window.ethereum) { setToast("Install MetaMask or Phantom"); return }
+  const connectWallet = async() => {
+    if (!window.ethereum) return showToast("MetaMask not detected")
     try {
-      const accs = await window.ethereum.request({ method: "eth_requestAccounts" })
-      setWallet(accs[0])
-      setToast("Wallet connected")
-      window.ethereum.on("accountsChanged", a => setWallet(a[0] || null))
-    } catch { setToast("Connection cancelled") }
+      const acc = await window.ethereum.request({ method: "eth_requestAccounts" })
+      setWallet(acc[0])
+      showToast("Wallet connected!")
+    } catch(e){ console.error(e); showToast("Failed to connect wallet") }
   }
 
-  // ── arena actions ──
-  async function joinArena(id) {
-    if (!wallet) { setToast("Connect wallet first"); return }
-    setToast("Joining…")
-    const r = await fetch(`${BACKEND}/api/arenas/${id}/join`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ playerAddress: wallet })
-    })
-    const d = await r.json()
-    if (d.error) { setToast(d.error); return }
-    setToast("Joined arena")
-    setSelected(d.arena); fetchArenas()
+  const showToast = (msg) => { setToast(msg); setTimeout(()=>setToast(null),3000) }
+
+  const handleCreate = async(data) => {
+    try {
+      const res = await fetch(`${BACKEND}/arenas`, {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({...data, creatorAddress: wallet })
+      })
+      if (!res.ok) throw new Error("Failed to create arena")
+      await fetchArenas()
+      setShowCreate(false)
+      showToast("Arena created!")
+    } catch(e){ console.error(e); showToast("Failed to create arena") }
   }
 
-  async function startArena(id) {
-    setToast("Starting…")
-    const r = await fetch(`${BACKEND}/api/arenas/${id}/start`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({})
-    })
-    const d = await r.json()
-    if (d.error) { setToast(d.error); return }
-    setToast("Arena started — AI initialising game")
-    setSelected(d.arena); fetchArenas()
+  const handleShare = () => {
+    const text = "Check out Arena Agent - AI Gaming on Monad! 🎮 Compete in AI-judged arenas with on-chain wagering. #Moltiverse #Monad @monad_xyz"
+    const url = "https://arena-agent-ebon.vercel.app"
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank')
   }
 
-  async function submitAnswer(id, answer, roundIndex) {
-    if (!wallet) { setToast("Connect wallet first"); return }
-    const r = await fetch(`${BACKEND}/api/arenas/${id}/submit`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ playerAddress: wallet, answer, roundIndex })
-    })
-    const d = await r.json()
-    if (d.error) { setToast(d.error); return }
-    setToast("Submitted")
-    setSelected(d.arena)
-    return d.result
-  }
-
-  async function settleArena(id) {
-    setToast("Settling…")
-    const r = await fetch(`${BACKEND}/api/arenas/${id}/settle`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({})
-    })
-    const d = await r.json()
-    if (d.error) { setToast(d.error); return }
-    setToast("Arena settled — winners determined")
-    setSelected(d.arena); fetchArenas()
-  }
-
-  async function createArena(payload) {
-    setToast("Creating…")
-    const r = await fetch(`${BACKEND}/api/arenas/create`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    })
-    const d = await r.json()
-    if (d.error) { setToast(d.error); return }
-    setToast("Arena created")
-    setShowCreate(false); fetchArenas()
-  }
-
-  // ── stats ──
-  const totalPots = arenas.reduce((s, a) => s + (parseFloat(a.betAmount) * a.players.length), 0)
-  const openCount = arenas.filter(a => a.status === "open").length
-  const doneCount = arenas.filter(a => a.status === "completed").length
-
-  function navigate(v) { setView(v); setSelected(null); setMobileNav(false); }
-
-  // ── RENDER ──
   return (
     <div className="shell">
-      {/* Orbs */}
-      <div className="orb orb-1" />
-      <div className="orb orb-2" />
-      <div className="orb orb-3" />
+      <div className="orb orb-1"/>
+      <div className="orb orb-2"/>
+      <div className="orb orb-3"/>
 
       {/* Watermark (dark mode only) */}
       <div className="watermark">
@@ -236,72 +190,100 @@ export default function App() {
         </div>
 
         <div className="navbar-links">
-          <button className={view === "arenas" ? "active" : ""} onClick={() => navigate("arenas")}>Arenas</button>
-          <button className={view === "leaderboard" ? "active" : ""} onClick={() => navigate("leaderboard")}>Leaderboard</button>
+          <button onClick={()=>setView("arenas")} className={view==="arenas"?"active":""}>Arenas</button>
+          <button onClick={()=>setView("leaderboard")} className={view==="leaderboard"?"active":""}>Leaderboard</button>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {/* Theme toggle button */}
-          <button className="theme-toggle" onClick={toggleTheme} title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}>
+        <div className="navbar-actions">
+          {/* Faucet button */}
+          <a href="https://testnet.monad.xyz" target="_blank" rel="noopener noreferrer" className="faucet-btn">
+            <Icons.Droplet />
+            Get Testnet MON
+          </a>
+
+          {/* Theme toggle */}
+          <button className="theme-toggle" onClick={toggleTheme} title="Toggle theme">
             {theme === 'light' ? <Icons.Moon /> : <Icons.Sun />}
           </button>
 
-          <button className={`wallet-btn ${wallet ? "connected" : ""}`} onClick={connectWallet}>
-            <span className="dot" />
+          {/* Wallet */}
+          <button onClick={connectWallet} className={`wallet-btn ${wallet?"connected":""}`}>
             <Icons.Wallet />
-            {wallet ? wallet.slice(0,6) + "…" + wallet.slice(-4) : "Connect"}
+            {wallet ? `${wallet.slice(0,6)}...${wallet.slice(-4)}` : "Connect"}
+            <span className="dot"/>
           </button>
-          <button className="hamburger" onClick={() => setMobileNav(true)}>
-            <Icons.Menu />
+
+          <button className="hamburger" onClick={()=>setMobileNav(!mobileNav)}>
+            <span/><span/><span/>
           </button>
         </div>
       </nav>
 
-      {/* Mobile Nav Overlay */}
-      <div className={`mobile-nav-overlay ${mobileNav ? "open" : ""}`}>
-        <button className="close-mobile" onClick={() => setMobileNav(false)}><Icons.X /></button>
-        <button onClick={() => navigate("arenas")}>Arenas</button>
-        <button onClick={() => navigate("leaderboard")}>Leaderboard</button>
-        <button className={`wallet-btn ${wallet ? "connected" : ""}`} style={{ marginTop: 12 }} onClick={() => { connectWallet(); setMobileNav(false); }}>
-          <span className="dot" />{wallet ? wallet.slice(0,6) + "…" + wallet.slice(-4) : "Connect Wallet"}
-        </button>
-      </div>
+      {/* Mobile nav overlay */}
+      {mobileNav && (
+        <div className="mobile-nav-overlay open">
+          <button className="close-mobile" onClick={()=>setMobileNav(false)}>×</button>
+          <button onClick={()=>{ setView("arenas"); setMobileNav(false); }}>Arenas</button>
+          <button onClick={()=>{ setView("leaderboard"); setMobileNav(false); }}>Leaderboard</button>
+          <a href="https://testnet.monad.xyz" target="_blank" rel="noopener noreferrer">Get Testnet MON</a>
+          <button onClick={()=>{ connectWallet(); setMobileNav(false); }}>
+            {wallet?"Disconnect Wallet":"Connect Wallet"}
+          </button>
+        </div>
+      )}
 
-      {/* Main */}
+      {/* Main content */}
       <main className="main-content">
-        {/* ── ARENA LIST VIEW ── */}
-        {view === "arenas" && !selectedArena && (
+        {view === "leaderboard" ? (
+          <Leaderboard arenas={arenas} />
+        ) : selectedArena ? (
+          <ArenaDetail
+            arena={selectedArena}
+            wallet={wallet}
+            onBack={()=>setSelected(null)}
+            onRefresh={fetchArenas}
+            showToast={showToast}
+          />
+        ) : (
           <>
             <div className="hero">
-              <h1>Autonomous Gaming Arena</h1>
-              <p>AI-powered competitive arenas with on-chain wagering on Monad. Join, compete, and earn.</p>
+              <h1>THE ARENA</h1>
+              <p>Autonomous AI gaming agent with on-chain wagering on Monad</p>
             </div>
 
             <div className="stats-row">
               <div className="stat-card">
-                <div className="label">Live Arenas</div>
-                <div className="value" style={{ color: "var(--gold)" }}>{openCount}</div>
+                <div className="label">Total Arenas</div>
+                <div className="value" style={{color:"var(--purple)"}}>{arenas.length}</div>
+              </div>
+              <div className="stat-card">
+                <div className="label">Active Now</div>
+                <div className="value" style={{color:"var(--cyan)"}}>{arenas.filter(a=>a.status==="open").length}</div>
+              </div>
+              <div className="stat-card">
+                <div className="label">In Progress</div>
+                <div className="value" style={{color:"var(--gold)"}}>{arenas.filter(a=>a.status==="in_progress").length}</div>
               </div>
               <div className="stat-card">
                 <div className="label">Completed</div>
-                <div className="value" style={{ color: "var(--green)" }}>{doneCount}</div>
-              </div>
-              <div className="stat-card">
-                <div className="label">Total Wagered</div>
-                <div className="value" style={{ color: "var(--purple-light)" }}>{totalPots.toFixed(3)} <span style={{ fontSize: 14, fontWeight: 500 }}>MON</span></div>
-              </div>
-              <div className="stat-card">
-                <div className="label">AI Games</div>
-                <div className="value" style={{ color: "var(--cyan)" }}>{arenas.length}</div>
+                <div className="value" style={{color:"var(--green)"}}>{arenas.filter(a=>a.status==="completed").length}</div>
               </div>
             </div>
 
             <div className="section-head">
-              <h2>Active Arenas</h2>
-              <button className="btn-create" onClick={() => setShowCreate(true)}>
-                <span style={{ display: "inline-flex", width: 16, height: 16 }}><Icons.Plus /></span>
-                Create Arena
-              </button>
+              <h2>Browse Arenas</h2>
+              <div style={{display:'flex',gap:'8px'}}>
+                <button className="share-btn" onClick={handleShare}>
+                  <Icons.Twitter />
+                  Share
+                </button>
+                {wallet && (
+                  <button className="btn-create" onClick={()=>setShowCreate(true)}>
+                    <Icons.Plus />
+                    Create Arena
+                  </button>
+                )}
+              </div>
             </div>
 
             {loading
@@ -313,24 +295,61 @@ export default function App() {
             }
           </>
         )}
-
-        {/* ── ARENA DETAIL VIEW ── */}
-        {view === "arenas" && selectedArena && (
-          <ArenaDetail
-            arena={selectedArena} wallet={wallet}
-            onBack={() => setSelected(null)}
-            onJoin={joinArena} onStart={startArena}
-            onSubmit={submitAnswer} onSettle={settleArena}
-            onToast={setToast}
-          />
-        )}
-
-        {/* ── LEADERBOARD ── */}
-        {view === "leaderboard" && <Leaderboard arenas={arenas} />}
       </main>
 
-      {/* Create Modal */}
-      {showCreate && <CreateModal onClose={() => setShowCreate(false)} onCreate={createArena} />}
+      {/* Footer */}
+      <footer className="footer">
+        <div className="footer-content">
+          <div className="footer-top">
+            <div className="footer-brand">
+              <img src="/logo-icon.svg" alt="Arena Agent" />
+              <div className="footer-brand-text">
+                <div className="brand-name">Arena Agent</div>
+                <div className="brand-tagline">AI-Powered Gaming on Monad</div>
+              </div>
+            </div>
+            
+            <div className="footer-links">
+              <button onClick={handleShare} className="footer-link">
+                <Icons.Twitter />
+                Share
+              </button>
+              <a href="https://discord.gg/monad" target="_blank" rel="noopener noreferrer" className="footer-link">
+                <Icons.Users />
+                Discord
+              </a>
+              <a href="https://github.com/mimisco-git/arena-agent" target="_blank" rel="noopener noreferrer" className="footer-link">
+                <Icons.Github />
+                GitHub
+              </a>
+            </div>
+          </div>
+          
+          <div className="footer-bottom">
+            <div className="footer-powered">
+              <span>Built for</span>
+              <a href="https://moltiverse.dev" target="_blank" rel="noopener noreferrer">Moltiverse Hackathon</a>
+            </div>
+            
+            <a href="https://www.monad.xyz" target="_blank" rel="noopener noreferrer" className="monad-badge">
+              <img src="/monad-logo.svg" alt="Monad" style={{width:'16px',height:'16px'}} />
+              Powered by Monad
+            </a>
+            
+            <div className="footer-copy">
+              © 2026 Arena Agent. Open Source.
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Create modal */}
+      {showCreate && (
+        <CreateModal
+          onClose={()=>setShowCreate(false)}
+          onCreate={handleCreate}
+        />
+      )}
 
       {/* Toast */}
       {toast && <div className="toast">{toast}</div>}
