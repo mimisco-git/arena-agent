@@ -132,8 +132,10 @@ export default function App() {
     try {
       const res = await fetch(`${BACKEND}/arenas`)
       if (!res.ok) throw new Error("Failed to fetch arenas")
-      const data = await res.json()
-      setArenas(data)
+      const response = await res.json()
+      // Handle both {"arenas": [...]} and [...] formats
+      const data = response.arenas || response
+      setArenas(Array.isArray(data) ? data : [])
     } catch(e) { console.error(e); showToast("Failed to load arenas") }
     finally { setLoading(false) }
   }, [])
