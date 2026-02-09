@@ -1,88 +1,90 @@
 // ═══════════════════════════════════════════════════════════════
-// ARENA AGENT - BULLETPROOF EDITION
-// Auto wake-up backend + smart retry + 404 handling
+// ARENA AGENT - ABSOLUTE FINAL VERSION
+// Auto wake + smart retry + BusyBrain Devs branding
 // ═══════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback } from 'react'
-import { 
-  Wallet, RefreshCw, Github, Twitter, MessageCircle, Sparkles
-} from 'lucide-react'
+import { Wallet, RefreshCw, Github, Twitter, MessageCircle, Sparkles } from 'lucide-react'
 import { HeroSection, StatsDashboard, GameModesShowcase, AIAgentSection, PremiumLoader } from './components-PREMIUM'
 import { ArenaGrid } from './PremiumArenaCard'
 
 const BACKEND = import.meta.env.VITE_BACKEND_URL || "https://arena-agent-backend.onrender.com/api"
 
 // ═══════════════════════════════════════════════════════════════
-// WAKE UP BACKEND FIRST
+// ULTIMATE FETCH - HANDLES EVERYTHING
 // ═══════════════════════════════════════════════════════════════
 
-async function wakeBackend() {
-  console.log('🔔 Waking backend...')
+async function ultimateFetch() {
+  console.log('═══════════════════════════════════════════════════')
+  console.log('🚀 ARENA AGENT - STARTING FETCH')
+  console.log('═══════════════════════════════════════════════════')
+  console.log(`📍 Backend URL: ${BACKEND}`)
+  
+  // Step 1: Wake backend
+  console.log('🔔 Step 1: Waking backend...')
   try {
-    await fetch(`${BACKEND}/health`, { method: 'GET' })
-    await new Promise(r => setTimeout(r, 2000)) // Wait 2s
-    console.log('✅ Backend awake')
-    return true
+    await fetch(`${BACKEND}/health`)
+    console.log('✅ Health endpoint called')
+    await new Promise(r => setTimeout(r, 3000)) // Wait 3s for full wake
+    console.log('⏰ Waited 3s for backend to fully wake')
   } catch (err) {
-    console.log('⏳ Backend starting...')
-    return false
+    console.log('⚠️ Health call failed (normal if sleeping):', err.message)
   }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// SMART FETCH WITH RETRY
-// ═══════════════════════════════════════════════════════════════
-
-async function smartFetch(attempt = 1, maxAttempts = 5) {
-  try {
-    console.log(`🔍 Fetch attempt ${attempt}/${maxAttempts}`)
-    
-    // First attempt: wake backend
-    if (attempt === 1) {
-      await wakeBackend()
+  
+  // Step 2: Try fetching arenas (with retries)
+  for (let attempt = 1; attempt <= 6; attempt++) {
+    try {
+      console.log(`🔍 Step 2.${attempt}: Fetching arenas...`)
+      
+      const res = await fetch(`${BACKEND}/arenas`, {
+        headers: { 'Content-Type': 'application/json' }
+      })
+      
+      console.log(`📡 Response: ${res.status} ${res.statusText}`)
+      
+      // Handle 404 (backend still waking)
+      if (res.status === 404) {
+        console.log('⏳ Got 404 - backend still waking...')
+        if (attempt < 6) {
+          const wait = 3000 + (attempt * 1000)
+          console.log(`⏱️ Waiting ${wait/1000}s before retry ${attempt + 1}...`)
+          await new Promise(r => setTimeout(r, wait))
+          continue
+        } else {
+          throw new Error('Backend not responding after 6 attempts')
+        }
+      }
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`)
+      }
+      
+      const data = await res.json()
+      console.log(`📦 Got data, type: ${Array.isArray(data) ? 'Array' : 'Object'}`)
+      console.log(`📦 First 100 chars:`, JSON.stringify(data).substring(0, 100))
+      
+      const arenas = data.arenas || data
+      
+      if (!Array.isArray(arenas)) {
+        console.error('❌ Data is not an array!', arenas)
+        throw new Error('Invalid data format')
+      }
+      
+      console.log(`✅ SUCCESS! Got ${arenas.length} arenas`)
+      console.log('═══════════════════════════════════════════════════')
+      return { ok: true, data: arenas }
+      
+    } catch (err) {
+      console.error(`❌ Attempt ${attempt} failed:`, err.message)
+      if (attempt === 6) {
+        console.error('💥 ALL ATTEMPTS FAILED!')
+        console.log('═══════════════════════════════════════════════════')
+        return { ok: false, error: `Failed after 6 attempts: ${err.message}` }
+      }
     }
-    
-    const res = await fetch(`${BACKEND}/arenas`, {
-      headers: { 'Content-Type': 'application/json' },
-      signal: AbortSignal.timeout(15000)
-    })
-    
-    console.log(`📡 ${res.status} ${res.statusText}`)
-    
-    // Handle 404 (backend sleeping)
-    if (res.status === 404 && attempt < maxAttempts) {
-      console.log('⏳ 404 - Backend sleeping, retry in 3s...')
-      await new Promise(r => setTimeout(r, 3000))
-      return smartFetch(attempt + 1, maxAttempts)
-    }
-    
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`)
-    }
-    
-    const data = await res.json()
-    const arenas = data.arenas || data
-    
-    if (!Array.isArray(arenas)) {
-      throw new Error('Invalid format')
-    }
-    
-    console.log(`✅ Loaded ${arenas.length} arenas`)
-    return { ok: true, data: arenas }
-    
-  } catch (err) {
-    console.error(`❌ Attempt ${attempt} failed:`, err.message)
-    
-    if (attempt >= maxAttempts) {
-      return { ok: false, error: err.message }
-    }
-    
-    // Exponential backoff
-    const wait = Math.min(2000 * attempt, 8000)
-    console.log(`⏳ Retry in ${wait/1000}s...`)
-    await new Promise(r => setTimeout(r, wait))
-    return smartFetch(attempt + 1, maxAttempts)
   }
+  
+  return { ok: false, error: 'Unknown error' }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -97,23 +99,29 @@ export default function App() {
   const [toast, setToast] = useState(null)
 
   const loadArenas = useCallback(async () => {
+    console.log('🎬 loadArenas() called')
     setLoading(true)
     setError(null)
     
-    const result = await smartFetch()
+    const result = await ultimateFetch()
     
     if (result.ok) {
+      console.log('✅ Setting arenas:', result.data.length)
       setArenas(result.data)
       showToast('Arenas loaded!', 'success')
     } else {
+      console.error('❌ Setting error:', result.error)
       setError(result.error)
-      showToast('Failed to load', 'error')
+      showToast('Failed to load arenas', 'error')
     }
     
     setLoading(false)
   }, [])
 
-  useEffect(() => { loadArenas() }, [loadArenas])
+  useEffect(() => { 
+    console.log('🎯 Component mounted, calling loadArenas()')
+    loadArenas() 
+  }, [loadArenas])
 
   const connectWallet = async () => {
     if (!window.ethereum) {
@@ -125,7 +133,7 @@ export default function App() {
       setWallet(accounts[0])
       showToast('Wallet connected!', 'success')
     } catch (err) {
-      showToast('Failed to connect', 'error')
+      showToast('Failed to connect wallet', 'error')
     }
   }
 
@@ -206,7 +214,7 @@ export default function App() {
         </div>
 
         {loading ? (
-          <PremiumLoader text="Waking backend & loading..." />
+          <PremiumLoader text="Waking backend & loading arenas..." />
         ) : error ? (
           <div className="glass" style={{
             padding: '48px', textAlign: 'center', borderRadius: '16px',
@@ -217,9 +225,13 @@ export default function App() {
               Failed to Load Arenas
             </div>
             <div style={{ 
-              color: 'rgba(255,255,255,0.6)', marginBottom: '24px',
+              color: 'rgba(255,255,255,0.6)', marginBottom: '16px',
               fontFamily: 'JetBrains Mono, monospace', fontSize: '0.9rem'
             }}>{error}</div>
+            <div style={{
+              color: 'rgba(255,255,255,0.5)', marginBottom: '24px',
+              fontSize: '0.85rem'
+            }}>Check console (F12) for detailed logs</div>
             <button className="btn btn-primary" onClick={loadArenas}>
               <RefreshCw size={18} /> Try Again
             </button>
@@ -280,7 +292,8 @@ export default function App() {
         }}>
           <div>© 2026 Arena Agent • Moltiverse Hackathon</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Sparkles size={16} color="#85E6FF" /> Built with AI
+            <Sparkles size={16} color="#85E6FF" />
+            Built by BusyBrain Devs
           </div>
         </div>
       </footer>
