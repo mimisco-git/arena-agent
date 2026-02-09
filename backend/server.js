@@ -232,4 +232,3 @@ app.listen(PORT, async () => {
   console.log(`\nArena Agent Backend listening on port ${PORT}\n`);
   await seedDemoArenas();
 });
-// Fixed response format
