@@ -77,7 +77,7 @@ app.post("/api/arenas/create", async (req, res) => {
 // List all arenas
 // ─────────────────────────────────────────────
 app.get("/api/arenas", (req, res) => {
-  res.json({ arenas: Object.values(gameStates) });
+  res.json(Object.values(gameStates));  // Return array directly
 });
 
 // ─────────────────────────────────────────────
