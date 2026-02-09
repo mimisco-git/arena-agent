@@ -1,360 +1,411 @@
-import { useState, useEffect, useCallback } from "react"
-import ArenaList    from "./components/ArenaList"
-import ArenaDetail  from "./components/ArenaDetail"
-import CreateModal  from "./components/CreateModal"
-import Leaderboard  from "./components/Leaderboard"
+// ═══════════════════════════════════════════════════════════════
+// ARENA AGENT - PREMIUM ULTIMATE EDITION
+// Complete redesign with glassmorphism, AI showcase, fixed loading
+// ═══════════════════════════════════════════════════════════════
+
+import { useState, useEffect, useCallback } from 'react'
+import { 
+  Wallet, Menu, X, Sun, Moon, RefreshCw, ExternalLink,
+  Github, Twitter, MessageCircle, Sparkles
+} from 'lucide-react'
+import { HeroSection, StatsDashboard, GameModesShowcase, AIAgentSection, PremiumLoader } from './components-PREMIUM'
+import { ArenaGrid } from './PremiumArenaCard'
 
 const BACKEND = import.meta.env.VITE_BACKEND_URL || "https://arena-agent-backend.onrender.com/api"
 
-// ── SVG icon components ──
-export const Icons = {
-  Stadium: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-    </svg>
-  ),
-  Crystal: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-    </svg>
-  ),
-  BookOpen: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-1H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-1h7z"/>
-    </svg>
-  ),
-  TrendingUp: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
-    </svg>
-  ),
-  Layers: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>
-    </svg>
-  ),
-  Users: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-    </svg>
-  ),
-  Diamond: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-    </svg>
-  ),
-  Trophy: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6 9H4.5a2.5 2.5 0 0 1 2.5-2.5v2.5m8 0V7a2.5 2.5 0 0 1 2.5 2.5H17m-11 3h10"/><path d="M6 9v4a6 6 0 0 0 12 0V9"/><path d="M6 20h12"/><path d="M9 20v2"/><path d="M15 20v2"/>
-    </svg>
-  ),
-  Plus: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-  ),
-  ChevronLeft: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-  ),
-  Menu: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-  ),
-  X: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-  ),
-  Wallet: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z"/>
-    </svg>
-  ),
-  Sun: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-    </svg>
-  ),
-  Moon: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-    </svg>
-  ),
-  Droplet: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
-    </svg>
-  ),
-  Twitter: () => (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-    </svg>
-  ),
-  Github: () => (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
-    </svg>
-  ),
-  Share: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-    </svg>
-  ),
-}
-
-// ── game type config with Monad official colors ──
-export const GAME_CONFIG = [
-  { label: "Prediction", color: "#85E6FF", Icon: Icons.Crystal },
-  { label: "Trivia",     color: "#DDD7FE", Icon: Icons.BookOpen },
-  { label: "Trading",    color: "#B9E3F9", Icon: Icons.TrendingUp },
-  { label: "Strategy",   color: "#FFAE45", Icon: Icons.Layers },
-]
+// ═══════════════════════════════════════════════════════════════
+// MAIN APP COMPONENT
+// ═══════════════════════════════════════════════════════════════
 
 export default function App() {
-  const [arenas, setArenas]           = useState([])
-  const [wallet, setWallet]           = useState(null)
-  const [view, setView]               = useState("arenas")
-  const [selectedArena, setSelected]  = useState(null)
-  const [showCreate, setShowCreate]   = useState(false)
-  const [toast, setToast]             = useState(null)
-  const [loading, setLoading]         = useState(true)
-  const [mobileNav, setMobileNav]     = useState(false)
-  const [theme, setTheme]             = useState(() => {
-    return localStorage.getItem('arena-theme') || 'light'
-  })
+  const [arenas, setArenas] = useState([])
+  const [wallet, setWallet] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [toast, setToast] = useState(null)
+  const [theme, setTheme] = useState('dark')
+  const [mobileNav, setMobileNav] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
 
-  // Apply theme to document root
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('arena-theme', theme)
-  }, [theme])
+  // ═══════════════════════════════════════════════════════════════
+  // FETCH ARENAS - WITH RETRY LOGIC
+  // ═══════════════════════════════════════════════════════════════
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light')
-  }
-
-  const fetchArenas = useCallback(async() => {
+  const fetchArenas = useCallback(async (retry = 0) => {
     try {
-      const res = await fetch(`${BACKEND}/arenas`)
-      if (!res.ok) throw new Error("Failed to fetch arenas")
-      const response = await res.json()
+      console.log(`🔍 Fetching arenas (attempt ${retry + 1})...`)
+      console.log(`📡 URL: ${BACKEND}/arenas`)
+      
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
+      
+      const res = await fetch(`${BACKEND}/arenas`, {
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      clearTimeout(timeoutId)
+      
+      console.log(`📡 Response status: ${res.status} ${res.statusText}`)
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`)
+      }
+      
+      const data = await res.json()
+      console.log(`📦 Response type: ${Array.isArray(data) ? 'Array' : 'Object'}`)
+      console.log(`📦 Data preview:`, JSON.stringify(data).substring(0, 100))
+      
       // Handle both {"arenas": [...]} and [...] formats
-      const data = response.arenas || response
-      setArenas(Array.isArray(data) ? data : [])
-    } catch(e) { console.error(e); showToast("Failed to load arenas") }
-    finally { setLoading(false) }
+      const arenasArray = data.arenas || data
+      
+      if (!Array.isArray(arenasArray)) {
+        console.error('❌ Data is not an array:', typeof arenasArray)
+        throw new Error('Invalid response format')
+      }
+      
+      console.log(`✅ Loaded ${arenasArray.length} arenas`)
+      setArenas(arenasArray)
+      setError(null)
+      setRetryCount(0)
+      
+    } catch (err) {
+      console.error('💥 Fetch error:', err)
+      
+      // Retry logic
+      if (retry < 3) {
+        console.log(`🔄 Retrying in ${(retry + 1) * 2}s...`)
+        setTimeout(() => {
+          setRetryCount(retry + 1)
+          fetchArenas(retry + 1)
+        }, (retry + 1) * 2000)
+        return
+      }
+      
+      setError(err.message)
+      setArenas([])
+      showToast('Failed to load arenas. Check console for details.', 'error')
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  useEffect(()=>{ fetchArenas() }, [fetchArenas])
+  useEffect(() => {
+    fetchArenas()
+  }, [fetchArenas])
 
-  const connectWallet = async() => {
-    if (!window.ethereum) return showToast("MetaMask not detected")
+  // ═══════════════════════════════════════════════════════════════
+  // WALLET CONNECTION
+  // ═══════════════════════════════════════════════════════════════
+
+  const connectWallet = async () => {
+    if (!window.ethereum) {
+      showToast('MetaMask not detected!', 'error')
+      return
+    }
+    
     try {
-      const acc = await window.ethereum.request({ method: "eth_requestAccounts" })
-      setWallet(acc[0])
-      showToast("Wallet connected!")
-    } catch(e){ console.error(e); showToast("Failed to connect wallet") }
-  }
-
-  const showToast = (msg) => { setToast(msg); setTimeout(()=>setToast(null),3000) }
-
-  const handleCreate = async(data) => {
-    try {
-      const res = await fetch(`${BACKEND}/arenas`, {
-        method: "POST",
-        headers: { "Content-Type":"application/json" },
-        body: JSON.stringify({...data, creatorAddress: wallet })
+      const accounts = await window.ethereum.request({ 
+        method: 'eth_requestAccounts' 
       })
-      if (!res.ok) throw new Error("Failed to create arena")
-      await fetchArenas()
-      setShowCreate(false)
-      showToast("Arena created!")
-    } catch(e){ console.error(e); showToast("Failed to create arena") }
+      setWallet(accounts[0])
+      showToast('Wallet connected!', 'success')
+    } catch (err) {
+      console.error('Wallet error:', err)
+      showToast('Failed to connect wallet', 'error')
+    }
   }
 
-  const handleShare = () => {
-    const text = "Check out Arena Agent - AI Gaming on Monad! 🎮 Compete in AI-judged arenas with on-chain wagering. #Moltiverse #Monad @monad_xyz"
-    const url = "https://arena-agent-ebon.vercel.app"
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank')
+  // ═══════════════════════════════════════════════════════════════
+  // TOAST NOTIFICATIONS
+  // ═══════════════════════════════════════════════════════════════
+
+  const showToast = (message, type = 'info') => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 4000)
   }
+
+  // ═══════════════════════════════════════════════════════════════
+  // CALCULATE STATS
+  // ═══════════════════════════════════════════════════════════════
+
+  const stats = {
+    total: arenas.length,
+    active: arenas.filter(a => a.status === 'open').length,
+    inProgress: arenas.filter(a => a.status === 'in-progress').length,
+    completed: arenas.filter(a => a.status === 'completed').length
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // RENDER - PREMIUM UI
+  // ═══════════════════════════════════════════════════════════════
 
   return (
-    <div className="shell">
-      <div className="orb orb-1"/>
-      <div className="orb orb-2"/>
-      <div className="orb orb-3"/>
-
-      {/* Watermark (dark mode only) */}
-      <div className="watermark">
-        <img src="/logo.svg" alt="Arena Agent" style={{ width: '120px', height: '120px', opacity: 0.6 }} />
-      </div>
-
-      {/* Navbar */}
-      <nav className="navbar">
-        <div className="navbar-logo">
-          <img src="/logo-icon.svg" alt="Arena Agent" style={{ width: '34px', height: '34px' }} />
-          <div className="logo-text"><span>Arena</span> Agent</div>
+    <div className="app">
+      {/* Premium Navigation */}
+      <nav className="glass" style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+        padding: '16px 24px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderBottom: '1px solid rgba(110, 84, 255, 0.2)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '8px',
+            background: 'linear-gradient(135deg, #6E54FF, #85E6FF)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '20px',
+            boxShadow: '0 4px 12px rgba(110, 84, 255, 0.4)'
+          }}>
+            ⚡
+          </div>
+          <div>
+            <div style={{ 
+              fontSize: '1.3rem', 
+              fontWeight: 700,
+              fontFamily: 'Space Grotesk, sans-serif'
+            }}>
+              ARENA AGENT
+            </div>
+            <div style={{ 
+              fontSize: '0.7rem', 
+              color: 'rgba(255,255,255,0.6)',
+              fontFamily: 'JetBrains Mono, monospace'
+            }}>
+              AI-Powered Gaming
+            </div>
+          </div>
         </div>
 
-        <div className="navbar-links">
-          <button onClick={()=>setView("arenas")} className={view==="arenas"?"active":""}>Arenas</button>
-          <button onClick={()=>setView("leaderboard")} className={view==="leaderboard"?"active":""}>Leaderboard</button>
-        </div>
-
-        <div className="navbar-actions">
-          {/* Faucet button */}
-          <a href="https://testnet.monad.xyz" target="_blank" rel="noopener noreferrer" className="faucet-btn">
-            <Icons.Droplet />
-            Get Testnet MON
-          </a>
-
-          {/* Theme toggle */}
-          <button className="theme-toggle" onClick={toggleTheme} title="Toggle theme">
-            {theme === 'light' ? <Icons.Moon /> : <Icons.Sun />}
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <button 
+            className="btn btn-ghost btn-icon"
+            onClick={() => fetchArenas()}
+            title="Refresh"
+          >
+            <RefreshCw size={18} />
           </button>
-
-          {/* Wallet */}
-          <button onClick={connectWallet} className={`wallet-btn ${wallet?"connected":""}`}>
-            <Icons.Wallet />
-            {wallet ? `${wallet.slice(0,6)}...${wallet.slice(-4)}` : "Connect"}
-            <span className="dot"/>
-          </button>
-
-          <button className="hamburger" onClick={()=>setMobileNav(!mobileNav)}>
-            <span/><span/><span/>
-          </button>
+          
+          {wallet ? (
+            <div className="glass" style={{
+              padding: '8px 16px',
+              borderRadius: '9999px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '0.9rem',
+              fontFamily: 'JetBrains Mono, monospace'
+            }}>
+              <div style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: '#00FF88'
+              }} />
+              {wallet.slice(0, 6)}...{wallet.slice(-4)}
+            </div>
+          ) : (
+            <button className="btn btn-primary" onClick={connectWallet}>
+              <Wallet size={18} />
+              Connect Wallet
+            </button>
+          )}
         </div>
       </nav>
 
-      {/* Mobile nav overlay */}
-      {mobileNav && (
-        <div className="mobile-nav-overlay open">
-          <button className="close-mobile" onClick={()=>setMobileNav(false)}>×</button>
-          <button onClick={()=>{ setView("arenas"); setMobileNav(false); }}>Arenas</button>
-          <button onClick={()=>{ setView("leaderboard"); setMobileNav(false); }}>Leaderboard</button>
-          <a href="https://testnet.monad.xyz" target="_blank" rel="noopener noreferrer">Get Testnet MON</a>
-          <button onClick={()=>{ connectWallet(); setMobileNav(false); }}>
-            {wallet?"Disconnect Wallet":"Connect Wallet"}
-          </button>
+      {/* Hero Section */}
+      <HeroSection onGetStarted={() => {
+        document.getElementById('arenas')?.scrollIntoView({ behavior: 'smooth' })
+      }} />
+
+      {/* Stats Dashboard */}
+      <div style={{ padding: '0 24px', maxWidth: '1400px', margin: '0 auto' }}>
+        <StatsDashboard stats={stats} />
+      </div>
+
+      {/* Game Modes Showcase */}
+      <GameModesShowcase />
+
+      {/* AI Agent Section */}
+      <AIAgentSection />
+
+      {/* Arenas Section */}
+      <div id="arenas" style={{ 
+        padding: '64px 24px',
+        maxWidth: '1400px',
+        margin: '0 auto'
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <h2 style={{
+            fontSize: 'clamp(2rem, 5vw, 3rem)',
+            marginBottom: '16px',
+            background: 'linear-gradient(135deg, #6E54FF, #85E6FF)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}>
+            Live Arenas
+          </h2>
+          <p style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.7)' }}>
+            Join active competitions or create your own
+          </p>
         </div>
-      )}
 
-      {/* Main content */}
-      <main className="main-content">
-        {view === "leaderboard" ? (
-          <Leaderboard arenas={arenas} />
-        ) : selectedArena ? (
-          <ArenaDetail
-            arena={selectedArena}
-            wallet={wallet}
-            onBack={()=>setSelected(null)}
-            onRefresh={fetchArenas}
-            showToast={showToast}
-          />
+        {loading ? (
+          <PremiumLoader text={retryCount > 0 ? `Retrying... (${retryCount}/3)` : "Loading arenas..."} />
+        ) : error ? (
+          <div className="glass" style={{
+            padding: '48px',
+            textAlign: 'center',
+            borderRadius: '16px',
+            border: '1px solid rgba(255, 142, 228, 0.3)'
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>😞</div>
+            <div style={{ fontSize: '1.3rem', marginBottom: '12px', color: '#FF8EE4' }}>
+              Failed to Load Arenas
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '24px' }}>
+              {error}
+            </div>
+            <button className="btn btn-primary" onClick={() => fetchArenas()}>
+              <RefreshCw size={18} />
+              Try Again
+            </button>
+          </div>
         ) : (
-          <>
-            <div className="hero">
-              <h1>THE ARENA</h1>
-              <p>Autonomous AI gaming agent with on-chain wagering on Monad</p>
-            </div>
-
-            <div className="stats-row">
-              <div className="stat-card">
-                <div className="label">Total Arenas</div>
-                <div className="value" style={{color:"var(--purple)"}}>{arenas.length}</div>
-              </div>
-              <div className="stat-card">
-                <div className="label">Active Now</div>
-                <div className="value" style={{color:"var(--cyan)"}}>{arenas.filter(a=>a.status==="open").length}</div>
-              </div>
-              <div className="stat-card">
-                <div className="label">In Progress</div>
-                <div className="value" style={{color:"var(--gold)"}}>{arenas.filter(a=>a.status==="in_progress").length}</div>
-              </div>
-              <div className="stat-card">
-                <div className="label">Completed</div>
-                <div className="value" style={{color:"var(--green)"}}>{arenas.filter(a=>a.status==="completed").length}</div>
-              </div>
-            </div>
-
-            <div className="section-head">
-              <h2>Browse Arenas</h2>
-              <div style={{display:'flex',gap:'8px'}}>
-                <button className="share-btn" onClick={handleShare}>
-                  <Icons.Twitter />
-                  Share
-                </button>
-                {wallet && (
-                  <button className="btn-create" onClick={()=>setShowCreate(true)}>
-                    <Icons.Plus />
-                    Create Arena
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {loading
-              ? <div className="empty-state">
-                  <div className="empty-icon"><img src="/logo-icon.svg" alt="Loading" style={{ width: '64px', height: '64px', opacity: 0.8 }} /></div>
-                  <p>Loading arenas…</p>
-                </div>
-              : <ArenaList arenas={arenas} onSelect={setSelected} />
-            }
-          </>
+          <ArenaGrid 
+            arenas={arenas} 
+            onArenaClick={(arena) => {
+              console.log('Arena clicked:', arena)
+              showToast(`Opening ${arena.title}...`, 'info')
+            }} 
+          />
         )}
-      </main>
+      </div>
 
-      {/* Footer */}
-      <footer className="footer">
-        <div className="footer-content">
-          <div className="footer-top">
-            <div className="footer-brand">
-              <img src="/logo-icon.svg" alt="Arena Agent" />
-              <div className="footer-brand-text">
-                <div className="brand-name">Arena Agent</div>
-                <div className="brand-tagline">AI-Powered Gaming on Monad</div>
+      {/* Premium Footer */}
+      <footer style={{
+        padding: '64px 24px',
+        borderTop: '2px solid',
+        borderImage: 'linear-gradient(90deg, #6E54FF, #85E6FF, #FF8EE4) 1',
+        background: 'linear-gradient(180deg, transparent 0%, rgba(26, 15, 58, 0.4) 100%)'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: '48px'
+        }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '8px',
+                background: 'linear-gradient(135deg, #6E54FF, #85E6FF)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '20px'
+              }}>
+                ⚡
               </div>
+              <div style={{ fontWeight: 700, fontSize: '1.2rem' }}>ARENA AGENT</div>
             </div>
-            
-            <div className="footer-links">
-              <button onClick={handleShare} className="footer-link">
-                <Icons.Twitter />
-                Share
-              </button>
-              <a href="https://discord.gg/monad" target="_blank" rel="noopener noreferrer" className="footer-link">
-                <Icons.Users />
-                Discord
-              </a>
-              <a href="https://github.com/mimisco-git/arena-agent" target="_blank" rel="noopener noreferrer" className="footer-link">
-                <Icons.Github />
-                GitHub
-              </a>
+            <p style={{ color: 'rgba(255,255,255,0.6)', lineHeight: '1.6' }}>
+              Autonomous AI gaming agent with on-chain wagering. Built for the Moltiverse Hackathon 2026.
+            </p>
+          </div>
+
+          <div>
+            <div style={{ fontWeight: 700, marginBottom: '16px', fontSize: '1.1rem' }}>
+              Powered By
+            </div>
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: '12px',
+              color: 'rgba(255,255,255,0.7)'
+            }}>
+              <div>🤖 Llama 3.3 70B (Groq)</div>
+              <div>⛓️ Monad Blockchain</div>
+              <div>⚛️ React + Vite</div>
+              <div>🎨 Premium UI/UX</div>
             </div>
           </div>
-          
-          <div className="footer-bottom">
-            <div className="footer-powered">
-              <span>Built for</span>
-              <a href="https://moltiverse.dev" target="_blank" rel="noopener noreferrer">Moltiverse Hackathon</a>
+
+          <div>
+            <div style={{ fontWeight: 700, marginBottom: '16px', fontSize: '1.1rem' }}>
+              Connect
             </div>
-            
-            <a href="https://www.monad.xyz" target="_blank" rel="noopener noreferrer" className="monad-badge">
-              <img src="/monad-logo.svg" alt="Monad" style={{width:'16px',height:'16px'}} />
-              Powered by Monad
-            </a>
-            
-            <div className="footer-copy">
-              © 2026 Arena Agent. Open Source.
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button className="btn btn-icon btn-ghost">
+                <Github size={20} />
+              </button>
+              <button className="btn btn-icon btn-ghost">
+                <Twitter size={20} />
+              </button>
+              <button className="btn btn-icon btn-ghost">
+                <MessageCircle size={20} />
+              </button>
             </div>
+          </div>
+        </div>
+
+        <div style={{
+          maxWidth: '1200px',
+          margin: '48px auto 0',
+          paddingTop: '24px',
+          borderTop: '1px solid rgba(110, 84, 255, 0.2)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '16px',
+          fontSize: '0.9rem',
+          color: 'rgba(255,255,255,0.5)'
+        }}>
+          <div>© 2026 Arena Agent • Moltiverse Hackathon</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Sparkles size={16} color="#85E6FF" />
+            Built with AI
           </div>
         </div>
       </footer>
 
-      {/* Create modal */}
-      {showCreate && (
-        <CreateModal
-          onClose={()=>setShowCreate(false)}
-          onCreate={handleCreate}
-        />
+      {/* Toast Notification */}
+      {toast && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          padding: '16px 24px',
+          background: toast.type === 'error' 
+            ? 'rgba(255, 100, 100, 0.95)' 
+            : toast.type === 'success'
+            ? 'rgba(0, 255, 136, 0.95)'
+            : 'rgba(110, 84, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '12px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+          color: 'white',
+          fontWeight: 600,
+          zIndex: 1000,
+          animation: 'fadeInUp 0.3s ease-out'
+        }}>
+          {toast.message}
+        </div>
       )}
-
-      {/* Toast */}
-      {toast && <div className="toast">{toast}</div>}
     </div>
   )
 }
