@@ -1,12 +1,14 @@
 // ═══════════════════════════════════════════════════════════════
-// ARENA AGENT - WITH THEME TOGGLE
-// Premium dark/light mode switching
+// ARENA AGENT - HACKATHON READY VERSION
+// Real Monad integration + Faucet + Theme toggle
 // ═══════════════════════════════════════════════════════════════
 
 import { useState, useEffect } from 'react'
-import { Wallet, RefreshCw, Github, Twitter, MessageCircle, Sparkles, X, Users, Clock, Trophy, Zap, Shield, Sun, Moon } from 'lucide-react'
+import { Wallet, RefreshCw, Github, Twitter, MessageCircle, Sparkles, X, Users, Clock, Trophy, Zap, Shield, Sun, Moon, Droplet, Network, AlertCircle } from 'lucide-react'
 import { HeroSection, StatsDashboard, GameModesShowcase, AIAgentSection, PremiumLoader } from './components-PREMIUM'
 import { ArenaGrid } from './PremiumArenaCard'
+import { FaucetModal } from './FaucetModal'
+import { switchToMonad, getMonBalance, isMonadNetwork } from './monadConfig'
 
 const BACKEND = "https://arena-agent-backend.onrender.com/api"
 
@@ -16,24 +18,17 @@ const BACKEND = "https://arena-agent-backend.onrender.com/api"
 
 function useTheme() {
   const [theme, setTheme] = useState(() => {
-    // Check localStorage first
     const saved = localStorage.getItem('arena-agent-theme')
     if (saved) return saved
-    
-    // Check system preference
     if (window.matchMedia('(prefers-color-scheme: light)').matches) {
       return 'light'
     }
-    
     return 'dark'
   })
 
   useEffect(() => {
-    // Apply theme to document
     document.documentElement.setAttribute('data-theme', theme)
     document.body.setAttribute('data-theme', theme)
-    
-    // Save to localStorage
     localStorage.setItem('arena-agent-theme', theme)
   }, [theme])
 
@@ -66,7 +61,7 @@ function ThemeToggle({ theme, onToggle }) {
         overflow: 'hidden'
       }}
     >
-      <div className="theme-toggle-slider" style={{
+      <div style={{
         position: 'absolute',
         top: '3px',
         left: theme === 'dark' ? '3px' : '31px',
@@ -272,9 +267,12 @@ export default function App() {
   const { theme, toggleTheme } = useTheme()
   const [arenas, setArenas] = useState([])
   const [wallet, setWallet] = useState(null)
+  const [monBalance, setMonBalance] = useState('0')
+  const [isMonad, setIsMonad] = useState(false)
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState(null)
   const [selectedArena, setSelectedArena] = useState(null)
+  const [showFaucet, setShowFaucet] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -289,6 +287,29 @@ export default function App() {
     load()
   }, [])
 
+  useEffect(() => {
+    if (wallet) {
+      checkNetwork()
+      updateBalance()
+    }
+  }, [wallet])
+
+  const checkNetwork = async () => {
+    const onMonad = await isMonadNetwork()
+    setIsMonad(onMonad)
+    
+    if (!onMonad) {
+      showToast('Please switch to Monad Testnet', 'warning')
+    }
+  }
+
+  const updateBalance = async () => {
+    if (wallet) {
+      const balance = await getMonBalance(wallet)
+      setMonBalance(balance)
+    }
+  }
+
   const connectWallet = async () => {
     if (!window.ethereum) {
       showToast('MetaMask not detected!', 'error')
@@ -298,8 +319,26 @@ export default function App() {
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
       setWallet(accounts[0])
       showToast('Wallet connected!', 'success')
+      
+      // Auto-switch to Monad
+      const result = await switchToMonad()
+      if (result.success) {
+        setIsMonad(true)
+        showToast('Switched to Monad Testnet!', 'success')
+      }
     } catch (err) {
       showToast('Failed to connect wallet', 'error')
+    }
+  }
+
+  const handleSwitchNetwork = async () => {
+    const result = await switchToMonad()
+    if (result.success) {
+      setIsMonad(true)
+      showToast('Switched to Monad Testnet!', 'success')
+      updateBalance()
+    } else {
+      showToast('Failed to switch network', 'error')
     }
   }
 
@@ -309,7 +348,21 @@ export default function App() {
       setSelectedArena(null)
       return
     }
-    showToast(`Joining ${arena.title}... (Smart contract needed)`, 'info')
+    
+    if (!isMonad) {
+      showToast('Please switch to Monad Testnet first!', 'warning')
+      setSelectedArena(null)
+      return
+    }
+
+    if (parseFloat(monBalance) < parseFloat(arena.betAmount)) {
+      showToast('Insufficient MON balance! Get tokens from faucet.', 'error')
+      setSelectedArena(null)
+      setShowFaucet(true)
+      return
+    }
+    
+    showToast(`Joining ${arena.title}... (Smart contract integration coming soon!)`, 'info')
     setSelectedArena(null)
   }
 
@@ -344,19 +397,64 @@ export default function App() {
               ARENA AGENT
             </div>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', fontFamily: 'JetBrains Mono, monospace' }}>
-              AI-Powered Gaming
+              AI-Powered Gaming on Monad
             </div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Network Warning */}
+          {wallet && !isMonad && (
+            <button 
+              onClick={handleSwitchNetwork}
+              className="btn btn-secondary"
+              style={{
+                background: 'rgba(255, 174, 69, 0.2)',
+                border: '1px solid rgba(255, 174, 69, 0.4)',
+                color: '#FFAE45'
+              }}
+            >
+              <AlertCircle size={16} />
+              Switch to Monad
+            </button>
+          )}
+
+          {/* Faucet Button */}
+          <button 
+            onClick={() => setShowFaucet(true)}
+            className="btn btn-secondary"
+            style={{
+              background: 'linear-gradient(135deg, rgba(133, 230, 255, 0.2), rgba(110, 84, 255, 0.2))',
+              border: '1px solid rgba(133, 230, 255, 0.4)'
+            }}
+          >
+            <Droplet size={18} />
+            Get MON
+          </button>
+
+          {/* Theme Toggle */}
           <ThemeToggle theme={theme} onToggle={toggleTheme} />
+
+          {/* Wallet */}
           {wallet ? (
             <div className="glass" style={{
               padding: '8px 16px', borderRadius: '9999px', display: 'flex',
-              alignItems: 'center', gap: '8px', fontSize: '0.9rem', fontFamily: 'JetBrains Mono, monospace'
+              alignItems: 'center', gap: '12px', fontSize: '0.9rem', fontFamily: 'JetBrains Mono, monospace'
             }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00FF88' }} />
-              {wallet.slice(0, 6)}...{wallet.slice(-4)}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+                gap: '2px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isMonad ? '#00FF88' : '#FFAE45' }} />
+                  {wallet.slice(0, 6)}...{wallet.slice(-4)}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  {monBalance} MON
+                </div>
+              </div>
             </div>
           ) : (
             <button className="btn btn-primary" onClick={connectWallet}>
@@ -418,17 +516,25 @@ export default function App() {
             <div style={{ fontWeight: 700, marginBottom: '16px', fontSize: '1.1rem', color: 'var(--text-primary)' }}>Powered By</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'var(--text-tertiary)' }}>
               <div>🤖 Llama 3.3 70B (Groq)</div>
-              <div>⛓️ Monad Blockchain</div>
+              <div>⛓️ Monad Testnet</div>
               <div>⚛️ React + Vite</div>
               <div>🎨 Premium UI/UX</div>
             </div>
           </div>
           <div>
-            <div style={{ fontWeight: 700, marginBottom: '16px', fontSize: '1.1rem', color: 'var(--text-primary)' }}>Connect</div>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button className="btn btn-icon btn-ghost"><Github size={20} /></button>
-              <button className="btn btn-icon btn-ghost"><Twitter size={20} /></button>
-              <button className="btn btn-icon btn-ghost"><MessageCircle size={20} /></button>
+            <div style={{ fontWeight: 700, marginBottom: '16px', fontSize: '1.1rem', color: 'var(--text-primary)' }}>Hackathon</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'var(--text-tertiary)' }}>
+              <div>🦞 Moltiverse 2026</div>
+              <div>💰 $200K Prize Pool</div>
+              <div>📅 Feb 2-18, 2026</div>
+              <a 
+                href="https://moltiverse.dev" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{ color: '#85E6FF', textDecoration: 'none' }}
+              >
+                moltiverse.dev →
+              </a>
             </div>
           </div>
         </div>
@@ -454,11 +560,17 @@ export default function App() {
         />
       )}
 
+      {showFaucet && (
+        <FaucetModal onClose={() => setShowFaucet(false)} />
+      )}
+
       {toast && (
         <div style={{
           position: 'fixed', bottom: '24px', right: '24px', padding: '16px 24px',
           background: toast.type === 'error' ? 'rgba(255, 100, 100, 0.95)' : 
-                      toast.type === 'success' ? 'rgba(0, 255, 136, 0.95)' : 'rgba(110, 84, 255, 0.95)',
+                      toast.type === 'success' ? 'rgba(0, 255, 136, 0.95)' : 
+                      toast.type === 'warning' ? 'rgba(255, 174, 69, 0.95)' :
+                      'rgba(110, 84, 255, 0.95)',
           backdropFilter: 'blur(20px)', borderRadius: '12px',
           boxShadow: '0 8px 32px rgba(0,0,0,0.4)', color: 'white',
           fontWeight: 600, zIndex: 1000, animation: 'fadeInUp 0.3s ease-out'
