@@ -1,8 +1,3 @@
-// ═══════════════════════════════════════════════════════════════
-// MONAD TESTNET CONFIGURATION
-// Network setup for MetaMask and Web3
-// ═══════════════════════════════════════════════════════════════
-
 export const MONAD_TESTNET_CONFIG = {
   chainId: '0x279F', // 10143 in hex
   chainName: 'Monad Testnet',
@@ -11,17 +6,13 @@ export const MONAD_TESTNET_CONFIG = {
     symbol: 'MON',
     decimals: 18
   },
-  rpcUrls: [
-    'https://testnet.monad.network',
-    'https://monad-testnet.rpc.caldera.xyz/http'
-  ],
+  rpcUrls: ['https://testnet-rpc.monad.xyz'],
   blockExplorerUrls: ['https://testnet.monadexplorer.com']
 }
 
-// Add Monad Testnet to MetaMask
 export async function addMonadNetwork() {
   if (!window.ethereum) {
-    throw new Error('MetaMask not detected!')
+    throw new Error('MetaMask not detected')
   }
 
   try {
@@ -29,18 +20,16 @@ export async function addMonadNetwork() {
       method: 'wallet_addEthereumChain',
       params: [MONAD_TESTNET_CONFIG]
     })
-    console.log('✅ Monad Testnet added!')
     return { success: true }
   } catch (error) {
-    console.error('❌ Failed to add network:', error)
+    console.error('Add network error:', error)
     return { success: false, error: error.message }
   }
 }
 
-// Switch to Monad Testnet
 export async function switchToMonad() {
   if (!window.ethereum) {
-    throw new Error('MetaMask not detected!')
+    throw new Error('MetaMask not detected')
   }
 
   try {
@@ -48,46 +37,40 @@ export async function switchToMonad() {
       method: 'wallet_switchEthereumChain',
       params: [{ chainId: MONAD_TESTNET_CONFIG.chainId }]
     })
-    console.log('✅ Switched to Monad Testnet!')
     return { success: true }
   } catch (error) {
-    // If network doesn't exist, add it
     if (error.code === 4902) {
       return await addMonadNetwork()
     }
-    console.error('❌ Failed to switch network:', error)
+    console.error('Switch network error:', error)
     return { success: false, error: error.message }
   }
 }
 
-// Check if connected to Monad Testnet
 export async function isMonadNetwork() {
   if (!window.ethereum) return false
-
+  
   try {
     const chainId = await window.ethereum.request({ method: 'eth_chainId' })
     return chainId === MONAD_TESTNET_CONFIG.chainId
   } catch (error) {
-    console.error('Failed to check network:', error)
+    console.error('Chain check error:', error)
     return false
   }
 }
 
-// Get MON balance
 export async function getMonBalance(address) {
-  if (!window.ethereum) return '0'
-
+  if (!window.ethereum || !address) return '0.0000'
+  
   try {
     const balance = await window.ethereum.request({
       method: 'eth_getBalance',
       params: [address, 'latest']
     })
-    
-    // Convert from wei to MON (18 decimals)
-    const balanceInMon = parseInt(balance, 16) / 1e18
-    return balanceInMon.toFixed(4)
+    const balanceInMON = parseInt(balance, 16) / 1e18
+    return balanceInMON.toFixed(4)
   } catch (error) {
-    console.error('Failed to get balance:', error)
-    return '0'
+    console.error('Balance check error:', error)
+    return '0.0000'
   }
 }

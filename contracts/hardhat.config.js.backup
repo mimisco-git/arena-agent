@@ -1,0 +1,44 @@
+require('@nomicfoundation/hardhat-toolbox');
+require('dotenv').config();
+
+/** @type import('hardhat/config').HardhatUserConfig */
+module.exports = {
+  solidity: {
+    version: "0.8.20",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      },
+      viaIR: true  // This fixes "Stack too deep" error
+    }
+  },
+  
+  networks: {
+    monad: {
+      url: process.env.MONAD_RPC_URL || 'https://testnet.monad.network',
+      chainId: 10143,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      gas: 'auto',
+      gasPrice: 'auto',
+      timeout: 60000
+    },
+    
+    monadAlt: {
+      url: 'https://monad-testnet.rpc.caldera.xyz/http',
+      chainId: 10143,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : []
+    },
+    
+    hardhat: {
+      chainId: 31337
+    }
+  },
+  
+  paths: {
+    sources: "./contracts",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts"
+  }
+};
