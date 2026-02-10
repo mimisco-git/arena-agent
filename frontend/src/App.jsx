@@ -1,17 +1,94 @@
 // ═══════════════════════════════════════════════════════════════
-// ARENA AGENT - FIXED MODAL VERSION
-// Inline modal to avoid import issues
+// ARENA AGENT - WITH THEME TOGGLE
+// Premium dark/light mode switching
 // ═══════════════════════════════════════════════════════════════
 
 import { useState, useEffect } from 'react'
-import { Wallet, RefreshCw, Github, Twitter, MessageCircle, Sparkles, X, Users, Clock, Trophy, Zap, Shield } from 'lucide-react'
+import { Wallet, RefreshCw, Github, Twitter, MessageCircle, Sparkles, X, Users, Clock, Trophy, Zap, Shield, Sun, Moon } from 'lucide-react'
 import { HeroSection, StatsDashboard, GameModesShowcase, AIAgentSection, PremiumLoader } from './components-PREMIUM'
 import { ArenaGrid } from './PremiumArenaCard'
 
 const BACKEND = "https://arena-agent-backend.onrender.com/api"
 
 // ═══════════════════════════════════════════════════════════════
-// ARENA MODAL - INLINE TO AVOID IMPORT ISSUES
+// THEME HOOK
+// ═══════════════════════════════════════════════════════════════
+
+function useTheme() {
+  const [theme, setTheme] = useState(() => {
+    // Check localStorage first
+    const saved = localStorage.getItem('arena-agent-theme')
+    if (saved) return saved
+    
+    // Check system preference
+    if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+      return 'light'
+    }
+    
+    return 'dark'
+  })
+
+  useEffect(() => {
+    // Apply theme to document
+    document.documentElement.setAttribute('data-theme', theme)
+    document.body.setAttribute('data-theme', theme)
+    
+    // Save to localStorage
+    localStorage.setItem('arena-agent-theme', theme)
+  }, [theme])
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark')
+  }
+
+  return { theme, toggleTheme }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// THEME TOGGLE BUTTON
+// ═══════════════════════════════════════════════════════════════
+
+function ThemeToggle({ theme, onToggle }) {
+  return (
+    <button 
+      onClick={onToggle}
+      className="theme-toggle"
+      title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+      style={{
+        position: 'relative',
+        width: '60px',
+        height: '32px',
+        background: 'var(--glass-bg)',
+        border: '1px solid var(--glass-border)',
+        borderRadius: 'var(--radius-full)',
+        cursor: 'pointer',
+        transition: 'all var(--transition-base)',
+        overflow: 'hidden'
+      }}
+    >
+      <div className="theme-toggle-slider" style={{
+        position: 'absolute',
+        top: '3px',
+        left: theme === 'dark' ? '3px' : '31px',
+        width: '24px',
+        height: '24px',
+        background: 'linear-gradient(135deg, var(--monad-purple), var(--monad-cyan))',
+        borderRadius: '50%',
+        transition: 'left var(--transition-base)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '14px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+      }}>
+        {theme === 'dark' ? <Moon size={14} color="white" /> : <Sun size={14} color="white" />}
+      </div>
+    </button>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ARENA MODAL
 // ═══════════════════════════════════════════════════════════════
 
 const gameTypeConfig = {
@@ -48,7 +125,6 @@ function ArenaModal({ arena, onClose, onJoin }) {
         position: 'relative', animation: 'slideUp 0.3s ease-out'
       }} onClick={e => e.stopPropagation()}>
         
-        {/* Header */}
         <div style={{
           background: `linear-gradient(135deg, ${config.color}22, ${config.color}11)`,
           borderBottom: `1px solid ${config.color}33`, padding: '32px', position: 'relative'
@@ -78,7 +154,7 @@ function ArenaModal({ arena, onClose, onJoin }) {
               </div>
               <h2 style={{
                 fontSize: '1.6rem', fontWeight: 700, margin: 0,
-                fontFamily: 'Space Grotesk, sans-serif'
+                fontFamily: 'Space Grotesk, sans-serif', color: 'var(--text-primary)'
               }}>
                 {arena.title}
               </h2>
@@ -86,14 +162,13 @@ function ArenaModal({ arena, onClose, onJoin }) {
           </div>
         </div>
 
-        {/* Stats */}
         <div style={{
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
           gap: '16px', padding: '24px 32px',
-          borderBottom: '1px solid rgba(110, 84, 255, 0.2)'
+          borderBottom: '1px solid var(--glass-border)'
         }}>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginBottom: '6px' }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '6px' }}>
               <Users size={12} style={{ display: 'inline' }} /> PLAYERS
             </div>
             <div style={{ fontSize: '1.6rem', fontWeight: 700, color: config.color }}>
@@ -101,7 +176,7 @@ function ArenaModal({ arena, onClose, onJoin }) {
             </div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginBottom: '6px' }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '6px' }}>
               <Trophy size={12} style={{ display: 'inline' }} /> PRIZE
             </div>
             <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#FFAE45' }}>
@@ -109,7 +184,7 @@ function ArenaModal({ arena, onClose, onJoin }) {
             </div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginBottom: '6px' }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '6px' }}>
               <Clock size={12} style={{ display: 'inline' }} /> TIME
             </div>
             <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#85E6FF' }}>
@@ -117,7 +192,7 @@ function ArenaModal({ arena, onClose, onJoin }) {
             </div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginBottom: '6px' }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '6px' }}>
               <Zap size={12} style={{ display: 'inline' }} /> ENTRY
             </div>
             <div style={{ fontSize: '1.6rem', fontWeight: 700, color: config.color }}>
@@ -126,16 +201,15 @@ function ArenaModal({ arena, onClose, onJoin }) {
           </div>
         </div>
 
-        {/* How to Play */}
         <div style={{ padding: '32px' }}>
           <h3 style={{
             fontSize: '1.2rem', fontWeight: 700, marginBottom: '16px',
-            display: 'flex', alignItems: 'center', gap: '10px'
+            display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-primary)'
           }}>
             <Shield size={20} color={config.color} />
             How to Play
           </h3>
-          <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.6' }}>
+          <p style={{ color: 'var(--text-tertiary)', lineHeight: '1.6' }}>
             {config.name === 'Prediction' && 'AI generates scenarios. Vote on outcomes. Closest predictions win the prize pool.'}
             {config.name === 'Trivia' && 'Answer AI-generated questions. Highest score wins. Test your knowledge!'}
             {config.name === 'Trading' && 'Simulated markets. Best portfolio returns win. Make smart trades!'}
@@ -143,9 +217,8 @@ function ArenaModal({ arena, onClose, onJoin }) {
           </p>
         </div>
 
-        {/* Footer */}
         <div style={{
-          padding: '20px 32px', borderTop: '1px solid rgba(110, 84, 255, 0.2)',
+          padding: '20px 32px', borderTop: '1px solid var(--glass-border)',
           display: 'flex', gap: '12px', alignItems: 'center'
         }}>
           {canJoin ? (
@@ -159,36 +232,23 @@ function ArenaModal({ arena, onClose, onJoin }) {
               </button>
               <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
             </>
-          ) : isFull ? (
-            <div style={{ 
-              flex: 1, textAlign: 'center', padding: '12px',
-              background: 'rgba(255, 174, 69, 0.1)', borderRadius: '12px',
-              border: '1px solid rgba(255, 174, 69, 0.3)', color: '#FFAE45'
-            }}>
-              Arena is Full ({arena.maxPlayers}/{arena.maxPlayers})
-            </div>
           ) : (
             <div style={{ 
               flex: 1, textAlign: 'center', padding: '12px',
-              background: 'rgba(255, 142, 228, 0.1)', borderRadius: '12px',
-              border: '1px solid rgba(255, 142, 228, 0.3)', color: '#FF8EE4'
+              background: 'var(--glass-bg)', borderRadius: '12px',
+              border: '1px solid var(--glass-border)', color: 'var(--text-secondary)'
             }}>
-              Arena has Ended
+              {isFull ? `Arena is Full (${arena.maxPlayers}/${arena.maxPlayers})` : 'Arena has Ended'}
             </div>
           )}
         </div>
       </div>
-
-      <style>{`
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-      `}</style>
     </div>
   )
 }
 
 // ═══════════════════════════════════════════════════════════════
-// MAIN APP
+// FETCH ARENAS
 // ═══════════════════════════════════════════════════════════════
 
 async function fetchArenas() {
@@ -204,7 +264,12 @@ async function fetchArenas() {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// MAIN APP
+// ═══════════════════════════════════════════════════════════════
+
 export default function App() {
+  const { theme, toggleTheme } = useTheme()
   const [arenas, setArenas] = useState([])
   const [wallet, setWallet] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -265,7 +330,7 @@ export default function App() {
       <nav className="glass" style={{
         position: 'sticky', top: 0, zIndex: 100, padding: '16px 24px',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        borderBottom: '1px solid rgba(110, 84, 255, 0.2)'
+        borderBottom: '1px solid var(--glass-border)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
@@ -275,15 +340,16 @@ export default function App() {
             fontSize: '20px', boxShadow: '0 4px 12px rgba(110, 84, 255, 0.4)'
           }}>⚡</div>
           <div>
-            <div style={{ fontSize: '1.3rem', fontWeight: 700, fontFamily: 'Space Grotesk, sans-serif' }}>
+            <div style={{ fontSize: '1.3rem', fontWeight: 700, fontFamily: 'Space Grotesk, sans-serif', color: 'var(--text-primary)' }}>
               ARENA AGENT
             </div>
-            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', fontFamily: 'JetBrains Mono, monospace' }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', fontFamily: 'JetBrains Mono, monospace' }}>
               AI-Powered Gaming
             </div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <ThemeToggle theme={theme} onToggle={toggleTheme} />
           {wallet ? (
             <div className="glass" style={{
               padding: '8px 16px', borderRadius: '9999px', display: 'flex',
@@ -311,12 +377,10 @@ export default function App() {
 
       <div id="arenas" style={{ padding: '64px 24px', maxWidth: '1400px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <h2 style={{
-            fontSize: 'clamp(2rem, 5vw, 3rem)', marginBottom: '16px',
-            background: 'linear-gradient(135deg, #6E54FF, #85E6FF)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
+          <h2 className="gradient-text" style={{
+            fontSize: 'clamp(2rem, 5vw, 3rem)', marginBottom: '16px'
           }}>Live Arenas</h2>
-          <p style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.7)' }}>
+          <p style={{ fontSize: '1.1rem', color: 'var(--text-tertiary)' }}>
             Join active competitions or create your own
           </p>
         </div>
@@ -331,7 +395,7 @@ export default function App() {
       <footer style={{
         padding: '64px 24px', borderTop: '2px solid',
         borderImage: 'linear-gradient(90deg, #6E54FF, #85E6FF, #FF8EE4) 1',
-        background: 'linear-gradient(180deg, transparent 0%, rgba(26, 15, 58, 0.4) 100%)'
+        background: 'var(--bg-tertiary)'
       }}>
         <div style={{
           maxWidth: '1200px', margin: '0 auto',
@@ -344,15 +408,15 @@ export default function App() {
                 background: 'linear-gradient(135deg, #6E54FF, #85E6FF)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px'
               }}>⚡</div>
-              <div style={{ fontWeight: 700, fontSize: '1.2rem' }}>ARENA AGENT</div>
+              <div style={{ fontWeight: 700, fontSize: '1.2rem', color: 'var(--text-primary)' }}>ARENA AGENT</div>
             </div>
-            <p style={{ color: 'rgba(255,255,255,0.6)', lineHeight: '1.6' }}>
+            <p style={{ color: 'var(--text-tertiary)', lineHeight: '1.6' }}>
               Autonomous AI gaming agent with on-chain wagering. Built for Moltiverse Hackathon 2026.
             </p>
           </div>
           <div>
-            <div style={{ fontWeight: 700, marginBottom: '16px', fontSize: '1.1rem' }}>Powered By</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'rgba(255,255,255,0.7)' }}>
+            <div style={{ fontWeight: 700, marginBottom: '16px', fontSize: '1.1rem', color: 'var(--text-primary)' }}>Powered By</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'var(--text-tertiary)' }}>
               <div>🤖 Llama 3.3 70B (Groq)</div>
               <div>⛓️ Monad Blockchain</div>
               <div>⚛️ React + Vite</div>
@@ -360,7 +424,7 @@ export default function App() {
             </div>
           </div>
           <div>
-            <div style={{ fontWeight: 700, marginBottom: '16px', fontSize: '1.1rem' }}>Connect</div>
+            <div style={{ fontWeight: 700, marginBottom: '16px', fontSize: '1.1rem', color: 'var(--text-primary)' }}>Connect</div>
             <div style={{ display: 'flex', gap: '12px' }}>
               <button className="btn btn-icon btn-ghost"><Github size={20} /></button>
               <button className="btn btn-icon btn-ghost"><Twitter size={20} /></button>
@@ -370,9 +434,9 @@ export default function App() {
         </div>
         <div style={{
           maxWidth: '1200px', margin: '48px auto 0', paddingTop: '24px',
-          borderTop: '1px solid rgba(110, 84, 255, 0.2)',
+          borderTop: '1px solid var(--glass-border)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          flexWrap: 'wrap', gap: '16px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)'
+          flexWrap: 'wrap', gap: '16px', fontSize: '0.9rem', color: 'var(--text-muted)'
         }}>
           <div>© 2026 Arena Agent • Moltiverse Hackathon</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
