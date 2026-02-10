@@ -1,40 +1,28 @@
-// HARDCODED BACKEND URL - NO .env DEPENDENCY
-import { useState, useEffect, useCallback } from 'react'
+// ═══════════════════════════════════════════════════════════════
+// ARENA AGENT - WITH WORKING MODAL
+// ═══════════════════════════════════════════════════════════════
+
+import { useState, useEffect } from 'react'
 import { Wallet, RefreshCw, Github, Twitter, MessageCircle, Sparkles } from 'lucide-react'
 import { HeroSection, StatsDashboard, GameModesShowcase, AIAgentSection, PremiumLoader } from './components-PREMIUM'
 import { ArenaGrid } from './PremiumArenaCard'
+import { ArenaModal } from './ArenaModal'
 
-// HARDCODED - GUARANTEED TO WORK
 const BACKEND = "https://arena-agent-backend.onrender.com/api"
 
-console.log('🎯 HARDCODED Backend URL:', BACKEND)
-
 async function fetchArenas() {
-  console.log('🔍 Fetching from:', `${BACKEND}/arenas`)
-  
   try {
-    // Wake backend first
     await fetch(`${BACKEND}/health`)
     await new Promise(r => setTimeout(r, 2000))
     
-    const res = await fetch(`${BACKEND}/arenas`, {
-      headers: { 'Content-Type': 'application/json' }
-    })
-    
-    console.log('📡 Response:', res.status, res.statusText)
-    
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`)
-    }
+    const res = await fetch(`${BACKEND}/arenas`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
     
     const data = await res.json()
     const arenas = data.arenas || data
     
-    console.log('✅ Got arenas:', arenas.length)
     return { ok: true, data: arenas }
-    
   } catch (err) {
-    console.error('❌ Error:', err)
     return { ok: false, error: err.message }
   }
 }
@@ -43,8 +31,8 @@ export default function App() {
   const [arenas, setArenas] = useState([])
   const [wallet, setWallet] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const [toast, setToast] = useState(null)
+  const [selectedArena, setSelectedArena] = useState(null)
 
   useEffect(() => {
     const load = async () => {
@@ -53,8 +41,6 @@ export default function App() {
       if (result.ok) {
         setArenas(result.data)
         showToast('Arenas loaded!', 'success')
-      } else {
-        setError(result.error)
       }
       setLoading(false)
     }
@@ -73,6 +59,19 @@ export default function App() {
     } catch (err) {
       showToast('Failed to connect wallet', 'error')
     }
+  }
+
+  const handleJoinArena = (arena) => {
+    if (!wallet) {
+      showToast('Please connect your wallet first!', 'error')
+      setSelectedArena(null)
+      return
+    }
+    
+    // Here you would integrate with your smart contract
+    console.log('Joining arena:', arena.id)
+    showToast(`Joining ${arena.title}... (Smart contract integration needed)`, 'info')
+    setSelectedArena(null)
   }
 
   const showToast = (message, type = 'info') => {
@@ -150,24 +149,8 @@ export default function App() {
 
         {loading ? (
           <PremiumLoader text="Loading arenas..." />
-        ) : error ? (
-          <div className="glass" style={{
-            padding: '48px', textAlign: 'center', borderRadius: '16px',
-            border: '1px solid rgba(255, 142, 228, 0.3)'
-          }}>
-            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>😞</div>
-            <div style={{ fontSize: '1.3rem', marginBottom: '12px', color: '#FF8EE4' }}>
-              Failed to Load Arenas
-            </div>
-            <div style={{ 
-              color: 'rgba(255,255,255,0.6)', marginBottom: '24px',
-              fontFamily: 'JetBrains Mono, monospace', fontSize: '0.9rem'
-            }}>{error}</div>
-          </div>
         ) : (
-          <ArenaGrid arenas={arenas} onArenaClick={(arena) => {
-            showToast(`Opening ${arena.title}...`, 'info')
-          }} />
+          <ArenaGrid arenas={arenas} onArenaClick={setSelectedArena} />
         )}
       </div>
 
@@ -225,6 +208,16 @@ export default function App() {
         </div>
       </footer>
 
+      {/* Arena Detail Modal */}
+      {selectedArena && (
+        <ArenaModal 
+          arena={selectedArena}
+          onClose={() => setSelectedArena(null)}
+          onJoin={handleJoinArena}
+        />
+      )}
+
+      {/* Toast Notification */}
       {toast && (
         <div style={{
           position: 'fixed', bottom: '24px', right: '24px', padding: '16px 24px',
