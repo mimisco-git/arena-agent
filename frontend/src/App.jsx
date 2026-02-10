@@ -1,27 +1,204 @@
 // ═══════════════════════════════════════════════════════════════
-// ARENA AGENT - WITH WORKING MODAL
+// ARENA AGENT - FIXED MODAL VERSION
+// Inline modal to avoid import issues
 // ═══════════════════════════════════════════════════════════════
 
 import { useState, useEffect } from 'react'
-import { Wallet, RefreshCw, Github, Twitter, MessageCircle, Sparkles } from 'lucide-react'
+import { Wallet, RefreshCw, Github, Twitter, MessageCircle, Sparkles, X, Users, Clock, Trophy, Zap, Shield } from 'lucide-react'
 import { HeroSection, StatsDashboard, GameModesShowcase, AIAgentSection, PremiumLoader } from './components-PREMIUM'
 import { ArenaGrid } from './PremiumArenaCard'
-import { ArenaModal } from './ArenaModal'
 
 const BACKEND = "https://arena-agent-backend.onrender.com/api"
+
+// ═══════════════════════════════════════════════════════════════
+// ARENA MODAL - INLINE TO AVOID IMPORT ISSUES
+// ═══════════════════════════════════════════════════════════════
+
+const gameTypeConfig = {
+  0: { name: "Prediction", icon: "🔮", color: "#6E54FF" },
+  1: { name: "Trivia", icon: "📖", color: "#85E6FF" },
+  2: { name: "Trading", icon: "📈", color: "#FF8EE4" },
+  3: { name: "Strategy", icon: "⚔️", color: "#FFAE45" }
+}
+
+function ArenaModal({ arena, onClose, onJoin }) {
+  if (!arena) return null
+  
+  const config = gameTypeConfig[arena.gameType] || gameTypeConfig[0]
+  const now = Math.floor(Date.now() / 1000)
+  const timeRemaining = arena.endTime - now
+  const minutes = Math.floor(timeRemaining / 60)
+  const seconds = timeRemaining % 60
+  
+  const isOpen = arena.status === 'open'
+  const isFull = arena.players.length >= arena.maxPlayers
+  const canJoin = isOpen && !isFull
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.8)',
+      backdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex',
+      alignItems: 'center', justifyContent: 'center', padding: '24px',
+      animation: 'fadeIn 0.2s ease-out'
+    }} onClick={onClose}>
+      
+      <div className="glass" style={{
+        maxWidth: '700px', width: '100%', maxHeight: '90vh', overflowY: 'auto',
+        borderRadius: '24px', border: `2px solid ${config.color}44`,
+        position: 'relative', animation: 'slideUp 0.3s ease-out'
+      }} onClick={e => e.stopPropagation()}>
+        
+        {/* Header */}
+        <div style={{
+          background: `linear-gradient(135deg, ${config.color}22, ${config.color}11)`,
+          borderBottom: `1px solid ${config.color}33`, padding: '32px', position: 'relative'
+        }}>
+          <button onClick={onClose} className="btn btn-ghost btn-icon"
+            style={{ position: 'absolute', top: '16px', right: '16px' }}>
+            <X size={24} />
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
+            <div style={{
+              width: '56px', height: '56px', borderRadius: '12px',
+              background: `linear-gradient(135deg, ${config.color}, ${config.color}dd)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '28px', boxShadow: `0 8px 24px ${config.color}44`
+            }}>
+              {config.icon}
+            </div>
+            <div>
+              <div style={{
+                padding: '4px 12px', borderRadius: '9999px',
+                background: `${config.color}22`, border: `1px solid ${config.color}44`,
+                fontSize: '0.85rem', fontWeight: 600, color: config.color,
+                display: 'inline-block', marginBottom: '6px'
+              }}>
+                {config.name}
+              </div>
+              <h2 style={{
+                fontSize: '1.6rem', fontWeight: 700, margin: 0,
+                fontFamily: 'Space Grotesk, sans-serif'
+              }}>
+                {arena.title}
+              </h2>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+          gap: '16px', padding: '24px 32px',
+          borderBottom: '1px solid rgba(110, 84, 255, 0.2)'
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginBottom: '6px' }}>
+              <Users size={12} style={{ display: 'inline' }} /> PLAYERS
+            </div>
+            <div style={{ fontSize: '1.6rem', fontWeight: 700, color: config.color }}>
+              {arena.players.length}/{arena.maxPlayers}
+            </div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginBottom: '6px' }}>
+              <Trophy size={12} style={{ display: 'inline' }} /> PRIZE
+            </div>
+            <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#FFAE45' }}>
+              {(parseFloat(arena.betAmount) * arena.maxPlayers).toFixed(2)}
+            </div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginBottom: '6px' }}>
+              <Clock size={12} style={{ display: 'inline' }} /> TIME
+            </div>
+            <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#85E6FF' }}>
+              {timeRemaining > 0 ? `${minutes}:${seconds.toString().padStart(2, '0')}` : 'ENDED'}
+            </div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginBottom: '6px' }}>
+              <Zap size={12} style={{ display: 'inline' }} /> ENTRY
+            </div>
+            <div style={{ fontSize: '1.6rem', fontWeight: 700, color: config.color }}>
+              {arena.betAmount}
+            </div>
+          </div>
+        </div>
+
+        {/* How to Play */}
+        <div style={{ padding: '32px' }}>
+          <h3 style={{
+            fontSize: '1.2rem', fontWeight: 700, marginBottom: '16px',
+            display: 'flex', alignItems: 'center', gap: '10px'
+          }}>
+            <Shield size={20} color={config.color} />
+            How to Play
+          </h3>
+          <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.6' }}>
+            {config.name === 'Prediction' && 'AI generates scenarios. Vote on outcomes. Closest predictions win the prize pool.'}
+            {config.name === 'Trivia' && 'Answer AI-generated questions. Highest score wins. Test your knowledge!'}
+            {config.name === 'Trading' && 'Simulated markets. Best portfolio returns win. Make smart trades!'}
+            {config.name === 'Strategy' && 'Card-based battles. Outsmart opponents. Strategic choices win!'}
+          </p>
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          padding: '20px 32px', borderTop: '1px solid rgba(110, 84, 255, 0.2)',
+          display: 'flex', gap: '12px', alignItems: 'center'
+        }}>
+          {canJoin ? (
+            <>
+              <button className="btn btn-primary" style={{
+                flex: 1, background: `linear-gradient(135deg, ${config.color}, ${config.color}dd)`,
+                boxShadow: `0 4px 16px ${config.color}44`
+              }} onClick={() => onJoin(arena)}>
+                <Zap size={18} />
+                Join Arena - {arena.betAmount} MON
+              </button>
+              <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+            </>
+          ) : isFull ? (
+            <div style={{ 
+              flex: 1, textAlign: 'center', padding: '12px',
+              background: 'rgba(255, 174, 69, 0.1)', borderRadius: '12px',
+              border: '1px solid rgba(255, 174, 69, 0.3)', color: '#FFAE45'
+            }}>
+              Arena is Full ({arena.maxPlayers}/{arena.maxPlayers})
+            </div>
+          ) : (
+            <div style={{ 
+              flex: 1, textAlign: 'center', padding: '12px',
+              background: 'rgba(255, 142, 228, 0.1)', borderRadius: '12px',
+              border: '1px solid rgba(255, 142, 228, 0.3)', color: '#FF8EE4'
+            }}>
+              Arena has Ended
+            </div>
+          )}
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAIN APP
+// ═══════════════════════════════════════════════════════════════
 
 async function fetchArenas() {
   try {
     await fetch(`${BACKEND}/health`)
     await new Promise(r => setTimeout(r, 2000))
-    
     const res = await fetch(`${BACKEND}/arenas`)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    
     const data = await res.json()
-    const arenas = data.arenas || data
-    
-    return { ok: true, data: arenas }
+    return { ok: true, data: data.arenas || data }
   } catch (err) {
     return { ok: false, error: err.message }
   }
@@ -67,10 +244,7 @@ export default function App() {
       setSelectedArena(null)
       return
     }
-    
-    // Here you would integrate with your smart contract
-    console.log('Joining arena:', arena.id)
-    showToast(`Joining ${arena.title}... (Smart contract integration needed)`, 'info')
+    showToast(`Joining ${arena.title}... (Smart contract needed)`, 'info')
     setSelectedArena(null)
   }
 
@@ -208,7 +382,6 @@ export default function App() {
         </div>
       </footer>
 
-      {/* Arena Detail Modal */}
       {selectedArena && (
         <ArenaModal 
           arena={selectedArena}
@@ -217,7 +390,6 @@ export default function App() {
         />
       )}
 
-      {/* Toast Notification */}
       {toast && (
         <div style={{
           position: 'fixed', bottom: '24px', right: '24px', padding: '16px 24px',
