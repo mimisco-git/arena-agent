@@ -1,189 +1,350 @@
 // ═══════════════════════════════════════════════════════════════
-// PREMIUM ARENA CARD COMPONENT
+// ULTRA-PREMIUM ARENA CARD
+// Luxury gaming card with advanced effects
 // ═══════════════════════════════════════════════════════════════
 
-import { Users, Clock, Trophy, Zap, Target, Swords } from 'lucide-react'
+import { Users, Clock, Trophy, Zap, TrendingUp, Award } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
-const gameTypeConfig = [
-  { 
-    label: "Prediction", 
+const gameTypeConfig = {
+  0: { 
+    name: "Prediction", 
     icon: "🔮", 
-    color: "#6E54FF",
-    Icon: Target,
-    description: "AI-generated market scenarios"
+    gradient: "linear-gradient(135deg, #7C3AED, #A855F7)",
+    color: "#7C3AED"
   },
-  { 
-    label: "Trivia", 
+  1: { 
+    name: "Trivia", 
     icon: "📖", 
-    color: "#85E6FF",
-    Icon: Zap,
-    description: "Knowledge-based challenges"
+    gradient: "linear-gradient(135deg, #06B6D4, #0891B2)",
+    color: "#06B6D4"
   },
-  { 
-    label: "Trading", 
+  2: { 
+    name: "Trading", 
     icon: "📈", 
-    color: "#FF8EE4",
-    Icon: Trophy,
-    description: "Simulated market trading"
+    gradient: "linear-gradient(135deg, #F59E0B, #FCD34D)",
+    color: "#F59E0B"
   },
-  { 
-    label: "Strategy", 
+  3: { 
+    name: "Strategy", 
     icon: "⚔️", 
-    color: "#FFAE45",
-    Icon: Swords,
-    description: "Card-based battles"
+    gradient: "linear-gradient(135deg, #A855F7, #7C3AED)",
+    color: "#A855F7"
   }
-]
+}
 
-export function PremiumArenaCard({ arena, onClick }) {
+function UltraPremiumArenaCard({ arena, onClick }) {
+  const [timeLeft, setTimeLeft] = useState('')
   const config = gameTypeConfig[arena.gameType] || gameTypeConfig[0]
   
-  // Calculate time remaining
-  const now = Math.floor(Date.now() / 1000)
-  const timeRemaining = arena.endTime - now
-  const minutes = Math.floor(timeRemaining / 60)
-  const seconds = timeRemaining % 60
-  
-  // Status
+  useEffect(() => {
+    const updateTime = () => {
+      const now = Math.floor(Date.now() / 1000)
+      const remaining = arena.endTime - now
+      if (remaining <= 0) {
+        setTimeLeft('ENDED')
+      } else {
+        const mins = Math.floor(remaining / 60)
+        const secs = remaining % 60
+        setTimeLeft(`${mins}:${secs.toString().padStart(2, '0')}`)
+      }
+    }
+    updateTime()
+    const interval = setInterval(updateTime, 1000)
+    return () => clearInterval(interval)
+  }, [arena.endTime])
+
   const isOpen = arena.status === 'open'
-  const isInProgress = arena.status === 'in-progress'
-  const isCompleted = arena.status === 'completed'
-  
+  const isFull = arena.players.length >= arena.maxPlayers
+  const prizePool = (parseFloat(arena.betAmount) * arena.maxPlayers).toFixed(2)
+
   return (
     <div 
-      className="arena-card" 
-      onClick={() => onClick(arena)}
+      className="arena-card-premium"
+      onClick={onClick}
       style={{
-        borderLeft: `3px solid ${config.color}`
+        position: 'relative',
+        isolation: 'isolate'
       }}
     >
-      {/* Header */}
-      <div className="arena-header">
-        <div className="arena-icon" style={{
-          background: `linear-gradient(135deg, ${config.color}, ${config.color}dd)`
+      {/* Top Accent Bar */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '4px',
+        background: config.gradient,
+        borderRadius: '24px 24px 0 0',
+        boxShadow: `0 0 20px ${config.color}60`
+      }} />
+
+      {/* Status Badge */}
+      <div style={{
+        position: 'absolute',
+        top: '16px',
+        right: '16px',
+        padding: '6px 16px',
+        background: isOpen && !isFull 
+          ? 'rgba(34, 197, 94, 0.15)' 
+          : 'rgba(239, 68, 68, 0.15)',
+        border: `1px solid ${isOpen && !isFull ? 'rgba(34, 197, 94, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
+        borderRadius: '9999px',
+        backdropFilter: 'blur(10px)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        zIndex: 2
+      }}>
+        <div style={{
+          width: '6px',
+          height: '6px',
+          borderRadius: '50%',
+          background: isOpen && !isFull ? '#22C55E' : '#EF4444',
+          boxShadow: `0 0 8px ${isOpen && !isFull ? '#22C55E' : '#EF4444'}`,
+          animation: 'pulse 2s ease-in-out infinite'
+        }} />
+        <span style={{
+          fontSize: '0.75rem',
+          fontWeight: 600,
+          color: 'white',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em'
         }}>
-          <span style={{ fontSize: '24px' }}>{config.icon}</span>
-        </div>
-        
-        <div className={`arena-status status-${arena.status}`}>
-          <div className="status-dot" />
-          {isOpen ? 'OPEN' : isInProgress ? 'LIVE' : 'ENDED'}
-        </div>
+          {isOpen && !isFull ? 'OPEN' : isFull ? 'FULL' : arena.status}
+        </span>
+      </div>
+
+      {/* Game Type Icon */}
+      <div style={{
+        width: '80px',
+        height: '80px',
+        borderRadius: '20px',
+        background: config.gradient,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '40px',
+        marginBottom: '20px',
+        boxShadow: `0 12px 40px ${config.color}50`,
+        position: 'relative',
+        marginTop: '8px'
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: '-6px',
+          background: config.gradient,
+          borderRadius: '24px',
+          opacity: 0.3,
+          filter: 'blur(20px)',
+          zIndex: -1
+        }} />
+        {config.icon}
+      </div>
+
+      {/* Game Type Badge */}
+      <div style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '4px 12px',
+        background: `${config.color}20`,
+        border: `1px solid ${config.color}40`,
+        borderRadius: '9999px',
+        marginBottom: '12px'
+      }}>
+        <span style={{
+          fontSize: '0.75rem',
+          fontWeight: 600,
+          color: config.color,
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em'
+        }}>
+          {config.name}
+        </span>
       </div>
 
       {/* Title */}
-      <h3 className="arena-title">{arena.title}</h3>
-      
-      {/* Type Badge */}
-      <div className="arena-type" style={{
-        background: `${config.color}22`,
-        borderColor: `${config.color}44`,
-        color: config.color
+      <h3 style={{
+        fontFamily: 'Space Grotesk, sans-serif',
+        fontSize: '1.25rem',
+        fontWeight: 700,
+        marginBottom: '16px',
+        color: 'white',
+        lineHeight: 1.3
       }}>
-        <config.Icon size={14} />
-        {config.label}
-      </div>
+        {arena.title}
+      </h3>
 
       {/* Stats Grid */}
-      <div className="arena-stats">
-        <div className="arena-stat">
-          <span className="arena-stat-value" style={{ color: config.color }}>
-            {arena.players?.length || 0}/{arena.maxPlayers}
-          </span>
-          <span className="arena-stat-label">
-            <Users size={12} style={{ display: 'inline', marginRight: '4px' }} />
-            Players
-          </span>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: '12px',
+        marginBottom: '20px'
+      }}>
+        {/* Players */}
+        <div style={{
+          padding: '12px',
+          background: 'rgba(124, 58, 237, 0.05)',
+          border: '1px solid rgba(124, 58, 237, 0.15)',
+          borderRadius: '12px'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            marginBottom: '6px'
+          }}>
+            <Users size={14} color="rgba(255, 255, 255, 0.6)" />
+            <span style={{
+              fontSize: '0.75rem',
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontWeight: 500
+            }}>
+              PLAYERS
+            </span>
+          </div>
+          <div style={{
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            color: config.color
+          }}>
+            {arena.players.length}/{arena.maxPlayers}
+          </div>
         </div>
-        
-        <div className="arena-stat">
-          <span className="arena-stat-value" style={{ color: '#FFAE45' }}>
+
+        {/* Prize Pool */}
+        <div style={{
+          padding: '12px',
+          background: 'rgba(245, 158, 11, 0.05)',
+          border: '1px solid rgba(245, 158, 11, 0.15)',
+          borderRadius: '12px'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            marginBottom: '6px'
+          }}>
+            <Trophy size={14} color="rgba(255, 255, 255, 0.6)" />
+            <span style={{
+              fontSize: '0.75rem',
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontWeight: 500
+            }}>
+              PRIZE
+            </span>
+          </div>
+          <div style={{
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            color: '#F59E0B'
+          }}>
+            {prizePool}
+          </div>
+        </div>
+
+        {/* Time Left */}
+        <div style={{
+          padding: '12px',
+          background: 'rgba(6, 182, 212, 0.05)',
+          border: '1px solid rgba(6, 182, 212, 0.15)',
+          borderRadius: '12px'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            marginBottom: '6px'
+          }}>
+            <Clock size={14} color="rgba(255, 255, 255, 0.6)" />
+            <span style={{
+              fontSize: '0.75rem',
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontWeight: 500
+            }}>
+              TIME
+            </span>
+          </div>
+          <div style={{
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            fontFamily: 'JetBrains Mono, monospace',
+            color: '#06B6D4'
+          }}>
+            {timeLeft}
+          </div>
+        </div>
+
+        {/* Entry Fee */}
+        <div style={{
+          padding: '12px',
+          background: 'rgba(168, 85, 247, 0.05)',
+          border: '1px solid rgba(168, 85, 247, 0.15)',
+          borderRadius: '12px'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            marginBottom: '6px'
+          }}>
+            <Zap size={14} color="rgba(255, 255, 255, 0.6)" />
+            <span style={{
+              fontSize: '0.75rem',
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontWeight: 500
+            }}>
+              ENTRY
+            </span>
+          </div>
+          <div style={{
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            color: '#A855F7'
+          }}>
             {arena.betAmount}
-          </span>
-          <span className="arena-stat-label">
-            <Trophy size={12} style={{ display: 'inline', marginRight: '4px' }} />
-            Bet MON
-          </span>
-        </div>
-        
-        <div className="arena-stat">
-          <span className="arena-stat-value" style={{ color: '#85E6FF' }}>
-            {timeRemaining > 0 ? `${minutes}m` : 'Ended'}
-          </span>
-          <span className="arena-stat-label">
-            <Clock size={12} style={{ display: 'inline', marginRight: '4px' }} />
-            Time
-          </span>
+          </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="arena-footer">
-        <div className="arena-timer" style={{ 
-          color: timeRemaining < 300 ? '#FF8EE4' : 'rgba(255,255,255,0.7)'
-        }}>
-          {timeRemaining > 0 ? (
-            <>
-              <Clock size={14} style={{ display: 'inline', marginRight: '4px' }} />
-              {minutes}:{seconds.toString().padStart(2, '0')}
-            </>
-          ) : (
-            'Awaiting Results'
-          )}
-        </div>
-        
-        <button 
-          className="btn btn-primary"
-          style={{ 
-            padding: '8px 20px',
-            fontSize: '0.9rem',
-            background: `linear-gradient(135deg, ${config.color}, ${config.color}dd)`
-          }}
-          onClick={(e) => {
-            e.stopPropagation()
-            onClick(arena)
-          }}
-        >
-          {isOpen ? 'Join Arena' : 'View Details'}
-        </button>
-      </div>
+      {/* Join Button */}
+      <button
+        className="btn-premium"
+        style={{
+          width: '100%',
+          background: config.gradient,
+          boxShadow: `0 4px 16px ${config.color}40`,
+          color: 'white',
+          justifyContent: 'center'
+        }}
+      >
+        <Award size={18} />
+        View Arena
+      </button>
     </div>
   )
 }
 
-// ═══════════════════════════════════════════════════════════════
-// ARENA GRID
-// ═══════════════════════════════════════════════════════════════
-
-export function ArenaGrid({ arenas, onArenaClick }) {
-  if (!arenas || arenas.length === 0) {
-    return (
-      <div style={{
-        textAlign: 'center',
-        padding: '64px 24px',
-        color: 'rgba(255,255,255,0.6)'
-      }}>
-        <Trophy size={48} style={{ opacity: 0.3, marginBottom: '16px' }} />
-        <div style={{ fontSize: '1.2rem' }}>No arenas available</div>
-        <div style={{ fontSize: '0.9rem', marginTop: '8px' }}>
-          Check back soon for new challenges!
-        </div>
-      </div>
-    )
-  }
-
+export function UltraPremiumArenaGrid({ arenas, onArenaClick }) {
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-      gap: '24px',
-      padding: '24px'
+      gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+      gap: '32px'
     }}>
       {arenas.map((arena, idx) => (
-        <div key={arena.id} style={{
-          animation: `fadeInUp 0.5s ease-out ${idx * 0.1}s backwards`
-        }}>
-          <PremiumArenaCard arena={arena} onClick={onArenaClick} />
+        <div
+          key={arena.id}
+          style={{
+            animation: `fadeInUp 0.6s ease-out ${idx * 0.1}s both`
+          }}
+        >
+          <UltraPremiumArenaCard 
+            arena={arena}
+            onClick={() => onArenaClick(arena)}
+          />
         </div>
       ))}
     </div>

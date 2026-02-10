@@ -1,99 +1,200 @@
 // ═══════════════════════════════════════════════════════════════
-// ARENA AGENT - PREMIUM COMPONENTS
+// ULTRA-PREMIUM COMPONENTS
+// Luxury gaming aesthetic with advanced animations
 // ═══════════════════════════════════════════════════════════════
 
-import { Sparkles, Zap, Trophy, Users, Clock, TrendingUp, 
-         Brain, Cpu, Activity, Shield, Target, Rocket } from 'lucide-react'
+import { TrendingUp, Users, Clock, Trophy, Zap, Brain, Shield, Target, Sparkles, Star, Crown } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 // ═══════════════════════════════════════════════════════════════
-// HERO SECTION
+// PREMIUM HERO SECTION
 // ═══════════════════════════════════════════════════════════════
 
-export function HeroSection({ onGetStarted }) {
+export function UltraPremiumHero({ onGetStarted }) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   return (
-    <div className="hero">
-      <div className="hero-badge" style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '8px',
-        padding: '8px 16px',
-        borderRadius: '9999px',
-        background: 'rgba(110, 84, 255, 0.2)',
-        border: '1px solid rgba(110, 84, 255, 0.3)',
-        marginBottom: '24px',
-        animation: 'fadeInUp 0.6s ease-out'
-      }}>
-        <Sparkles size={16} color="#85E6FF" />
-        <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>
-          Powered by AI • Built on Monad
-        </span>
-      </div>
-
-      <h1 className="hero-title gradient-text">
-        THE ARENA
-      </h1>
-      
-      <p className="hero-subtitle">
-        Autonomous AI gaming agent with on-chain wagering on Monad.
-        <br />
-        Compete in AI-generated games. Win MON. Dominate the leaderboard.
-      </p>
-
-      <div className="hero-cta">
-        <button className="btn btn-primary" onClick={onGetStarted}>
-          <Rocket size={20} />
-          Enter Arena
-        </button>
-        <button className="btn btn-secondary">
-          <Activity size={20} />
-          View Live Games
-        </button>
-      </div>
-
-      {/* Floating stats */}
+    <div style={{
+      position: 'relative',
+      padding: '120px 24px 80px',
+      overflow: 'hidden',
+      background: 'linear-gradient(180deg, rgba(15, 15, 35, 0) 0%, rgba(26, 26, 46, 0.5) 100%)'
+    }}>
+      {/* Floating Particles */}
       <div style={{
-        marginTop: '64px',
-        display: 'flex',
-        gap: '48px',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        opacity: 0.8
+        position: 'absolute',
+        inset: 0,
+        background: `
+          radial-gradient(circle at 20% 30%, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
+          radial-gradient(circle at 80% 70%, rgba(6, 182, 212, 0.08) 0%, transparent 50%)
+        `,
+        animation: 'float 20s ease-in-out infinite'
+      }} />
+
+      {/* Content */}
+      <div style={{
+        maxWidth: '1400px',
+        margin: '0 auto',
+        textAlign: 'center',
+        position: 'relative',
+        zIndex: 1
       }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ 
-            fontSize: '2rem', 
-            fontWeight: 700,
-            background: 'linear-gradient(135deg, #6E54FF, #85E6FF)',
+        {/* Badge */}
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '8px 20px',
+          background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(6, 182, 212, 0.1))',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(124, 58, 237, 0.3)',
+          borderRadius: '9999px',
+          marginBottom: '32px',
+          animation: mounted ? 'fadeInUp 0.6s ease-out' : 'none',
+          boxShadow: '0 0 20px rgba(124, 58, 237, 0.3)'
+        }}>
+          <Crown size={16} color="#F59E0B" />
+          <span style={{
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            background: 'linear-gradient(135deg, #F59E0B, #FCD34D)',
             WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
-          }}>$10K</div>
-          <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)' }}>
-            Prize Pool
-          </div>
+            WebkitTextFillColor: 'transparent',
+            letterSpacing: '0.05em'
+          }}>
+            MOLTIVERSE HACKATHON 2026
+          </span>
         </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ 
-            fontSize: '2rem', 
-            fontWeight: 700,
-            background: 'linear-gradient(135deg, #FF8EE4, #6E54FF)',
+
+        {/* Title */}
+        <h1 style={{
+          fontFamily: 'Space Grotesk, sans-serif',
+          fontSize: 'clamp(3rem, 8vw, 5.5rem)',
+          fontWeight: 800,
+          lineHeight: 1.1,
+          marginBottom: '24px',
+          letterSpacing: '-0.03em',
+          animation: mounted ? 'fadeInUp 0.8s ease-out 0.2s both' : 'none'
+        }}>
+          <span style={{
+            background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 50%, #06B6D4 100%)',
             WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
-          }}>4</div>
-          <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)' }}>
-            Game Modes
-          </div>
+            WebkitTextFillColor: 'transparent',
+            backgroundSize: '200% 200%',
+            animation: 'shimmer 3s ease-in-out infinite'
+          }}>
+            Arena Agent
+          </span>
+          <br />
+          <span style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+            AI-Powered Gaming
+          </span>
+        </h1>
+
+        {/* Subtitle */}
+        <p style={{
+          fontSize: 'clamp(1.125rem, 2vw, 1.5rem)',
+          color: 'rgba(255, 255, 255, 0.7)',
+          maxWidth: '700px',
+          margin: '0 auto 48px',
+          lineHeight: 1.6,
+          animation: mounted ? 'fadeInUp 1s ease-out 0.4s both' : 'none'
+        }}>
+          Autonomous AI agent creating competitive gaming arenas with{' '}
+          <span style={{
+            background: 'linear-gradient(135deg, #06B6D4, #0891B2)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontWeight: 600
+          }}>
+            automated wagering
+          </span>{' '}
+          on Monad blockchain
+        </p>
+
+        {/* CTA Buttons */}
+        <div style={{
+          display: 'flex',
+          gap: '16px',
+          justifyContent: 'center',
+          flexWrap: 'wrap',
+          animation: mounted ? 'fadeInUp 1.2s ease-out 0.6s both' : 'none'
+        }}>
+          <button 
+            onClick={onGetStarted}
+            className="btn-primary-premium"
+            style={{
+              padding: '18px 40px',
+              fontSize: '1.125rem',
+              position: 'relative'
+            }}
+          >
+            <Zap size={20} />
+            Explore Arenas
+          </button>
+
+          <a
+            href="https://moltiverse.dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-glass-premium"
+            style={{
+              padding: '18px 40px',
+              fontSize: '1.125rem',
+              textDecoration: 'none'
+            }}
+          >
+            <Trophy size={20} />
+            Hackathon Info
+          </a>
         </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ 
-            fontSize: '2rem', 
-            fontWeight: 700,
-            background: 'linear-gradient(135deg, #85E6FF, #FF8EE4)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
-          }}>100%</div>
-          <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)' }}>
-            AI-Powered
-          </div>
+
+        {/* Stats Preview */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+          gap: '24px',
+          maxWidth: '800px',
+          margin: '80px auto 0',
+          animation: mounted ? 'fadeInUp 1.4s ease-out 0.8s both' : 'none'
+        }}>
+          {[
+            { label: 'Prize Pool', value: '$200K', icon: Trophy },
+            { label: 'Game Types', value: '4', icon: Target },
+            { label: 'AI Powered', value: '100%', icon: Brain }
+          ].map((stat, idx) => (
+            <div key={idx} style={{
+              padding: '20px',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02))',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(124, 58, 237, 0.2)',
+              borderRadius: '16px',
+              transition: 'all 0.3s ease'
+            }}>
+              <stat.icon size={24} color="#06B6D4" style={{ marginBottom: '8px' }} />
+              <div style={{
+                fontSize: '1.75rem',
+                fontWeight: 800,
+                background: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                marginBottom: '4px'
+              }}>
+                {stat.value}
+              </div>
+              <div style={{
+                fontSize: '0.875rem',
+                color: 'rgba(255, 255, 255, 0.6)',
+                fontWeight: 500
+              }}>
+                {stat.label}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -104,55 +205,88 @@ export function HeroSection({ onGetStarted }) {
 // PREMIUM STATS DASHBOARD
 // ═══════════════════════════════════════════════════════════════
 
-export function StatsDashboard({ stats }) {
+export function UltraPremiumStats({ stats }) {
   const statItems = [
-    { 
-      icon: Trophy, 
-      label: 'Total Arenas', 
-      value: stats.total || 0,
-      gradient: 'linear-gradient(135deg, #6E54FF, #85E6FF)'
+    {
+      label: 'Total Arenas',
+      value: stats.total,
+      icon: TrendingUp,
+      gradient: 'linear-gradient(135deg, #7C3AED, #A855F7)',
+      color: '#7C3AED'
     },
-    { 
-      icon: Activity, 
-      label: 'Active Now', 
-      value: stats.active || 0,
-      gradient: 'linear-gradient(135deg, #00FF88, #00D4FF)'
+    {
+      label: 'Active Now',
+      value: stats.active,
+      icon: Zap,
+      gradient: 'linear-gradient(135deg, #06B6D4, #0891B2)',
+      color: '#06B6D4'
     },
-    { 
-      icon: Clock, 
-      label: 'In Progress', 
-      value: stats.inProgress || 0,
-      gradient: 'linear-gradient(135deg, #FFAE45, #FF8EE4)'
+    {
+      label: 'In Progress',
+      value: stats.inProgress,
+      icon: Clock,
+      gradient: 'linear-gradient(135deg, #F59E0B, #FCD34D)',
+      color: '#F59E0B'
     },
-    { 
-      icon: TrendingUp, 
-      label: 'Completed', 
-      value: stats.completed || 0,
-      gradient: 'linear-gradient(135deg, #85E6FF, #6E54FF)'
+    {
+      label: 'Completed',
+      value: stats.completed,
+      icon: Trophy,
+      gradient: 'linear-gradient(135deg, #A855F7, #7C3AED)',
+      color: '#A855F7'
     }
   ]
 
   return (
-    <div className="stats-grid">
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+      gap: '24px',
+      marginBottom: '80px'
+    }}>
       {statItems.map((stat, idx) => (
-        <div key={idx} className="stat-card" style={{
-          animation: `fadeInUp 0.6s ease-out ${idx * 0.1}s backwards`
-        }}>
-          <div style={{
-            width: '48px',
-            height: '48px',
-            margin: '0 auto 16px',
-            borderRadius: '12px',
+        <div 
+          key={idx}
+          className="stat-card-premium"
+          style={{
+            animationDelay: `${idx * 0.1}s`,
+            animation: 'fadeInUp 0.6s ease-out both'
+          }}
+        >
+          {/* Icon */}
+          <div className="stat-icon-premium" style={{
             background: stat.gradient,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 8px 24px rgba(110, 84, 255, 0.3)'
+            boxShadow: `0 8px 32px ${stat.color}40`
           }}>
-            <stat.icon size={24} color="white" />
+            <stat.icon size={28} color="white" />
           </div>
-          <span className="stat-value">{stat.value}</span>
-          <span className="stat-label">{stat.label}</span>
+
+          {/* Value */}
+          <div className="stat-value-premium">
+            {stat.value}
+          </div>
+
+          {/* Label */}
+          <div className="stat-label-premium">
+            {stat.label}
+          </div>
+
+          {/* Progress Bar */}
+          <div style={{
+            marginTop: '16px',
+            height: '3px',
+            background: 'rgba(124, 58, 237, 0.1)',
+            borderRadius: '9999px',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              height: '100%',
+              width: `${Math.min((stat.value / 10) * 100, 100)}%`,
+              background: stat.gradient,
+              borderRadius: '9999px',
+              transition: 'width 1s ease-out 0.5s'
+            }} />
+          </div>
         </div>
       ))}
     </div>
@@ -160,237 +294,310 @@ export function StatsDashboard({ stats }) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// GAME MODES SHOWCASE
+// PREMIUM GAME MODES SHOWCASE
 // ═══════════════════════════════════════════════════════════════
 
-export function GameModesShowcase() {
+export function UltraPremiumGameModes() {
   const gameModes = [
     {
+      title: 'Prediction Markets',
+      description: 'AI generates market scenarios. Vote on outcomes. Most accurate predictions win the prize pool.',
       icon: '🔮',
-      name: 'Prediction',
-      description: 'AI generates scenarios. Vote on outcomes. Closest predictions win.',
-      color: '#6E54FF',
-      features: ['Market Predictions', 'Event Forecasting', 'Trend Analysis']
+      gradient: 'linear-gradient(135deg, #7C3AED, #A855F7)',
+      features: ['AI Scenarios', 'Real-time Odds', 'Smart Payouts']
     },
     {
+      title: 'Trivia Showdown',
+      description: 'Answer AI-generated questions on crypto, tech, and blockchain. Highest score takes all.',
       icon: '📖',
-      name: 'Trivia',
-      description: 'AI-generated questions on crypto, tech, and more. Test your knowledge.',
-      color: '#85E6FF',
-      features: ['Dynamic Questions', 'Multiple Difficulty', 'Time Pressure']
+      gradient: 'linear-gradient(135deg, #06B6D4, #0891B2)',
+      features: ['AI Questions', 'Time Pressure', 'Knowledge Test']
     },
     {
+      title: 'Trading Arena',
+      description: 'Simulated markets with real-time price action. Best portfolio returns win the competition.',
       icon: '📈',
-      name: 'Trading',
-      description: 'Simulated markets. Make buy/sell decisions. Best returns win.',
-      color: '#FF8EE4',
-      features: ['Live Market Sim', 'Portfolio Management', 'Risk vs Reward']
+      gradient: 'linear-gradient(135deg, #F59E0B, #FCD34D)',
+      features: ['Live Markets', 'Risk Management', 'Portfolio Battle']
     },
     {
+      title: 'Strategy Duel',
+      description: 'Card-based tactical battles. Outsmart opponents with strategic moves and combos.',
       icon: '⚔️',
-      name: 'Strategy',
-      description: 'Battle with card selection. Outsmart opponents with strategic choices.',
-      color: '#FFAE45',
-      features: ['Card Battles', 'Strategic Depth', 'Counter-play']
+      gradient: 'linear-gradient(135deg, #A855F7, #7C3AED)',
+      features: ['Turn-Based', 'Skill Match', 'Combo System']
     }
   ]
 
   return (
-    <div style={{ padding: '64px 24px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-        <h2 style={{ 
-          fontSize: 'clamp(2rem, 5vw, 3rem)', 
-          marginBottom: '16px',
-          background: 'linear-gradient(135deg, #6E54FF, #85E6FF)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent'
-        }}>
-          Four Ways to Win
-        </h2>
-        <p style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.7)', maxWidth: '600px', margin: '0 auto' }}>
-          Each game mode is generated and judged by our autonomous AI agent
-        </p>
-      </div>
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '24px',
-        maxWidth: '1200px',
-        margin: '0 auto'
-      }}>
-        {gameModes.map((mode, idx) => (
-          <div key={idx} className="card" style={{
-            animation: `fadeInUp 0.6s ease-out ${idx * 0.15}s backwards`,
-            borderTop: `2px solid ${mode.color}`
-          }}>
-            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>{mode.icon}</div>
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '12px' }}>{mode.name}</h3>
-            <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '20px', minHeight: '60px' }}>
-              {mode.description}
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {mode.features.map((feature, i) => (
-                <div key={i} style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '0.9rem',
-                  color: 'rgba(255,255,255,0.8)'
-                }}>
-                  <div style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    background: mode.color
-                  }} />
-                  {feature}
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ═══════════════════════════════════════════════════════════════
-// AI AGENT SECTION
-// ═══════════════════════════════════════════════════════════════
-
-export function AIAgentSection() {
-  const features = [
-    {
-      icon: Brain,
-      title: 'Content Generation',
-      description: 'Llama 3.3 70B generates unique game scenarios, questions, and challenges'
-    },
-    {
-      icon: Shield,
-      title: 'Fair Judging',
-      description: 'Autonomous evaluation ensures unbiased winner selection'
-    },
-    {
-      icon: Cpu,
-      title: 'Smart Contracts',
-      description: 'On-chain execution on Monad for trustless wagering and payouts'
-    },
-    {
-      icon: Zap,
-      title: 'Real-time Processing',
-      description: 'Instant game generation and rapid result determination'
-    }
-  ]
-
-  return (
-    <div style={{ 
+    <div style={{
       padding: '80px 24px',
-      background: 'linear-gradient(180deg, rgba(26, 15, 58, 0.4) 0%, rgba(10, 1, 24, 0.2) 100%)'
+      position: 'relative'
     }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+        {/* Section Header */}
         <div style={{ textAlign: 'center', marginBottom: '64px' }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
             padding: '6px 16px',
+            background: 'rgba(124, 58, 237, 0.1)',
+            border: '1px solid rgba(124, 58, 237, 0.3)',
             borderRadius: '9999px',
-            background: 'rgba(133, 230, 255, 0.1)',
-            border: '1px solid rgba(133, 230, 255, 0.2)',
-            marginBottom: '24px'
+            marginBottom: '16px'
           }}>
-            <Cpu size={16} color="#85E6FF" />
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#85E6FF' }}>
-              POWERED BY AI
+            <Star size={16} color="#F59E0B" />
+            <span style={{
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              color: 'rgba(255, 255, 255, 0.9)'
+            }}>
+              GAME MODES
             </span>
           </div>
 
           <h2 style={{
-            fontSize: 'clamp(2rem, 5vw, 3rem)',
-            marginBottom: '20px',
-            background: 'linear-gradient(135deg, #85E6FF, #FF8EE4)',
+            fontFamily: 'Space Grotesk, sans-serif',
+            fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+            fontWeight: 800,
+            marginBottom: '16px',
+            background: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent'
           }}>
-            Meet the Arena Agent
+            Four Ways to Win
           </h2>
-          <p style={{ 
-            fontSize: '1.2rem', 
-            color: 'rgba(255,255,255,0.7)', 
-            maxWidth: '700px', 
-            margin: '0 auto' 
+
+          <p style={{
+            fontSize: '1.25rem',
+            color: 'rgba(255, 255, 255, 0.7)',
+            maxWidth: '600px',
+            margin: '0 auto'
           }}>
-            Our autonomous AI handles everything from content creation to winner determination.
-            Zero human intervention. Pure algorithmic fairness.
+            AI-powered competitive gaming with automated wagering
           </p>
         </div>
 
+        {/* Game Mode Cards */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: '24px'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '32px'
         }}>
-          {features.map((feature, idx) => (
-            <div key={idx} className="glass" style={{
-              padding: '32px',
-              borderRadius: '16px',
-              animation: `fadeInUp 0.6s ease-out ${idx * 0.1}s backwards`
-            }}>
+          {gameModes.map((mode, idx) => (
+            <div
+              key={idx}
+              className="card-premium"
+              style={{
+                animationDelay: `${idx * 0.15}s`,
+                animation: 'fadeInUp 0.8s ease-out both',
+                cursor: 'pointer'
+              }}
+            >
+              {/* Icon */}
               <div style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #6E54FF, #85E6FF)',
+                width: '80px',
+                height: '80px',
+                borderRadius: '20px',
+                background: mode.gradient,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: '20px',
-                boxShadow: '0 8px 24px rgba(110, 84, 255, 0.4)'
+                fontSize: '40px',
+                marginBottom: '24px',
+                boxShadow: `0 12px 40px ${mode.gradient.match(/#[0-9A-F]{6}/i)[0]}40`,
+                position: 'relative'
               }}>
-                <feature.icon size={28} color="white" />
+                <div style={{
+                  position: 'absolute',
+                  inset: '-4px',
+                  background: mode.gradient,
+                  borderRadius: '24px',
+                  opacity: 0.3,
+                  filter: 'blur(20px)',
+                  zIndex: -1
+                }} />
+                {mode.icon}
               </div>
-              <h3 style={{ fontSize: '1.3rem', marginBottom: '12px' }}>{feature.title}</h3>
-              <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.6' }}>
-                {feature.description}
+
+              {/* Title */}
+              <h3 style={{
+                fontFamily: 'Space Grotesk, sans-serif',
+                fontSize: '1.5rem',
+                fontWeight: 700,
+                marginBottom: '12px',
+                color: 'white'
+              }}>
+                {mode.title}
+              </h3>
+
+              {/* Description */}
+              <p style={{
+                fontSize: '1rem',
+                lineHeight: 1.6,
+                color: 'rgba(255, 255, 255, 0.7)',
+                marginBottom: '24px'
+              }}>
+                {mode.description}
               </p>
+
+              {/* Features */}
+              <div style={{
+                display: 'flex',
+                gap: '8px',
+                flexWrap: 'wrap'
+              }}>
+                {mode.features.map((feature, fidx) => (
+                  <span
+                    key={fidx}
+                    style={{
+                      padding: '6px 12px',
+                      background: 'rgba(124, 58, 237, 0.1)',
+                      border: '1px solid rgba(124, 58, 237, 0.3)',
+                      borderRadius: '9999px',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      color: 'rgba(255, 255, 255, 0.9)'
+                    }}
+                  >
+                    {feature}
+                  </span>
+                ))}
+              </div>
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  )
+}
 
-        {/* Tech Stack */}
-        <div style={{
-          marginTop: '64px',
-          padding: '40px',
-          background: 'rgba(110, 84, 255, 0.05)',
-          border: '1px solid rgba(110, 84, 255, 0.2)',
-          borderRadius: '16px',
-          textAlign: 'center'
+// ═══════════════════════════════════════════════════════════════
+// PREMIUM AI SECTION
+// ═══════════════════════════════════════════════════════════════
+
+export function UltraPremiumAISection() {
+  return (
+    <div style={{
+      padding: '80px 24px',
+      position: 'relative',
+      background: 'linear-gradient(180deg, transparent 0%, rgba(124, 58, 237, 0.05) 50%, transparent 100%)'
+    }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <div className="glass-premium" style={{
+          padding: '64px',
+          borderRadius: '32px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '48px',
+          alignItems: 'center'
         }}>
-          <h3 style={{ fontSize: '1.5rem', marginBottom: '24px' }}>Tech Stack</h3>
-          <div style={{
-            display: 'flex',
-            gap: '32px',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            fontFamily: 'JetBrains Mono, monospace',
-            fontSize: '0.95rem'
-          }}>
-            <div style={{ opacity: 0.9 }}>
-              <div style={{ color: '#85E6FF', marginBottom: '8px' }}>Model</div>
-              <div>Llama 3.3 70B</div>
+          {/* Left Side - AI Badge */}
+          <div style={{ textAlign: 'center' }}>
+            <div style={{
+              width: '160px',
+              height: '160px',
+              margin: '0 auto',
+              borderRadius: '32px',
+              background: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 20px 60px rgba(124, 58, 237, 0.5)',
+              position: 'relative',
+              animation: 'float 6s ease-in-out infinite'
+            }}>
+              <div style={{
+                position: 'absolute',
+                inset: '-8px',
+                background: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
+                borderRadius: '36px',
+                opacity: 0.3,
+                filter: 'blur(30px)',
+                zIndex: -1
+              }} />
+              <Brain size={80} color="white" />
             </div>
-            <div style={{ opacity: 0.9 }}>
-              <div style={{ color: '#85E6FF', marginBottom: '8px' }}>Blockchain</div>
-              <div>Monad Testnet</div>
+
+            <div style={{
+              marginTop: '24px',
+              padding: '12px 24px',
+              background: 'rgba(245, 158, 11, 0.1)',
+              border: '1px solid rgba(245, 158, 11, 0.3)',
+              borderRadius: '9999px',
+              display: 'inline-block'
+            }}>
+              <span style={{
+                fontSize: '1rem',
+                fontWeight: 700,
+                background: 'linear-gradient(135deg, #F59E0B, #FCD34D)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}>
+                POWERED BY LLAMA 3.3 70B
+              </span>
             </div>
-            <div style={{ opacity: 0.9 }}>
-              <div style={{ color: '#85E6FF', marginBottom: '8px' }}>API</div>
-              <div>Groq</div>
-            </div>
-            <div style={{ opacity: 0.9 }}>
-              <div style={{ color: '#85E6FF', marginBottom: '8px' }}>Frontend</div>
-              <div>React + Vite</div>
+          </div>
+
+          {/* Right Side - Description */}
+          <div>
+            <h3 style={{
+              fontFamily: 'Space Grotesk, sans-serif',
+              fontSize: '2.5rem',
+              fontWeight: 800,
+              marginBottom: '24px',
+              background: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              Autonomous AI Agent
+            </h3>
+
+            <p style={{
+              fontSize: '1.125rem',
+              lineHeight: 1.8,
+              color: 'rgba(255, 255, 255, 0.8)',
+              marginBottom: '32px'
+            }}>
+              Our AI agent autonomously generates game scenarios, judges player performance, 
+              and manages prize distribution. Built with Llama 3.3 70B for intelligent, 
+              fair, and engaging gameplay on the Monad blockchain.
+            </p>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '16px'
+            }}>
+              {[
+                { label: 'Scenario Generation', icon: Sparkles },
+                { label: 'Fair Judging', icon: Shield },
+                { label: 'Auto Payouts', icon: Zap },
+                { label: 'Real-time Adaptation', icon: Brain }
+              ].map((feature, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '16px',
+                    background: 'rgba(124, 58, 237, 0.05)',
+                    border: '1px solid rgba(124, 58, 237, 0.2)',
+                    borderRadius: '12px'
+                  }}
+                >
+                  <feature.icon size={20} color="#06B6D4" />
+                  <span style={{
+                    fontSize: '0.95rem',
+                    fontWeight: 500,
+                    color: 'rgba(255, 255, 255, 0.9)'
+                  }}>
+                    {feature.label}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -400,50 +607,39 @@ export function AIAgentSection() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// PREMIUM LOADING STATE
+// PREMIUM LOADER
 // ═══════════════════════════════════════════════════════════════
 
-export function PremiumLoader({ text = "Loading arenas..." }) {
+export function UltraPremiumLoader({ text = "Loading..." }) {
   return (
-    <div className="loader-premium">
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '80px 24px',
+      gap: '24px'
+    }}>
+      {/* Spinner */}
       <div style={{
-        width: '80px',
-        height: '80px',
-        position: 'relative'
-      }}>
-        <div className="spinner" />
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          fontSize: '2rem'
-        }}>
-          ⚡
-        </div>
-      </div>
+        width: '60px',
+        height: '60px',
+        border: '3px solid rgba(124, 58, 237, 0.2)',
+        borderTop: '3px solid #7C3AED',
+        borderRadius: '50%',
+        animation: 'spin 1s linear infinite',
+        boxShadow: '0 0 40px rgba(124, 58, 237, 0.3)'
+      }} />
+
+      {/* Text */}
       <div style={{
-        fontSize: '1.1rem',
-        color: 'rgba(255,255,255,0.8)',
-        fontWeight: 500
+        fontSize: '1.125rem',
+        fontWeight: 600,
+        color: 'rgba(255, 255, 255, 0.8)',
+        animation: 'pulse 2s ease-in-out infinite'
       }}>
         {text}
-      </div>
-      <div style={{
-        display: 'flex',
-        gap: '8px'
-      }}>
-        {[0, 1, 2].map(i => (
-          <div key={i} style={{
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #6E54FF, #85E6FF)',
-            animation: `pulse 1.5s ease-in-out ${i * 0.2}s infinite`
-          }} />
-        ))}
       </div>
     </div>
   )
 }
-
