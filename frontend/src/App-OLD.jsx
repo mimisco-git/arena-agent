@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════
-// ARENA AGENT - ULTRA PREMIUM FINAL VERSION
-// The most premium Web3 gaming interface ever created
+// ARENA AGENT - ULTRA PREMIUM FINAL VERSION + REAL-TIME AI
+// The most premium Web3 gaming interface with LIVE AI gaming
 // ═══════════════════════════════════════════════════════════════
 
 import { GamePlayModal, GameResultsModal } from './GamePlayModal'
@@ -27,9 +27,6 @@ const gameTypeConfig = {
 function UltraPremiumArenaModal({ arena, onClose, onJoin }) {
   if (!arena) return null
   
-const [showGamePlay, setShowGamePlay] = useState(false)
-const [currentArena, setCurrentArena] = useState(null)
-const [gameResults, setGameResults] = useState(null)
   const config = gameTypeConfig[arena.gameType] || gameTypeConfig[0]
   const now = Math.floor(Date.now() / 1000)
   const timeRemaining = arena.endTime - now
@@ -178,36 +175,23 @@ const [gameResults, setGameResults] = useState(null)
         <div style={{
           padding: '24px 40px',
           borderTop: '1px solid rgba(124, 58, 237, 0.2)',
-          display: 'flex', gap: '16px', alignItems: 'center'
+          background: 'linear-gradient(180deg, transparent, rgba(15, 15, 35, 0.5))'
         }}>
-          {canJoin ? (
-            <>
-              <button 
-                className="btn-premium"
-                style={{
-                  flex: 1, background: config.gradient,
-                  boxShadow: `0 8px 32px ${config.color}50`,
-                  justifyContent: 'center', fontSize: '1.05rem', padding: '16px 32px'
-                }}
-                onClick={() => onJoin(arena)}
-              >
-                <Zap size={20} />
-                Join Arena - {arena.betAmount} MON
-              </button>
-              <button className="btn-glass-premium" onClick={onClose} style={{ padding: '16px 32px' }}>
-                Cancel
-              </button>
-            </>
-          ) : (
-            <div style={{ 
-              flex: 1, textAlign: 'center', padding: '16px',
-              background: 'rgba(239, 68, 68, 0.15)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              borderRadius: '16px', color: '#EF4444', fontWeight: 600, fontSize: '1.05rem'
-            }}>
-              {isFull ? `Arena is Full (${arena.maxPlayers}/${arena.maxPlayers})` : 'Arena has Ended'}
-            </div>
-          )}
+          <button
+            onClick={() => onJoin(arena)}
+            disabled={!canJoin}
+            className="btn-premium"
+            style={{
+              width: '100%', justifyContent: 'center',
+              background: canJoin ? config.gradient : 'rgba(255,255,255,0.1)',
+              opacity: canJoin ? 1 : 0.5,
+              cursor: canJoin ? 'pointer' : 'not-allowed',
+              boxShadow: canJoin ? `0 12px 40px ${config.color}50` : 'none'
+            }}
+          >
+            <Zap size={20} />
+            {!isOpen ? 'Arena Closed' : isFull ? 'Arena Full' : 'Join Arena'}
+          </button>
         </div>
       </div>
     </div>
@@ -215,103 +199,109 @@ const [gameResults, setGameResults] = useState(null)
 }
 
 // ═══════════════════════════════════════════════════════════════
-// FETCH ARENAS
-// ═══════════════════════════════════════════════════════════════
-
-async function fetchArenas() {
-  try {
-    await fetch(`${BACKEND}/health`)
-    await new Promise(r => setTimeout(r, 2000))
-    const res = await fetch(`${BACKEND}/arenas`)
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const data = await res.json()
-    return { ok: true, data: data.arenas || data }
-  } catch (err) {
-    return { ok: false, error: err.message }
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// MAIN APP
+// MAIN APP COMPONENT
 // ═══════════════════════════════════════════════════════════════
 
 export default function App() {
-  const [arenas, setArenas] = useState([])
-  const [wallet, setWallet] = useState(null)
-  const [monBalance, setMonBalance] = useState('0')
+  // State
+  const [wallet, setWallet] = useState('')
   const [isMonad, setIsMonad] = useState(false)
+  const [monBalance, setMonBalance] = useState('0.0000')
+  const [arenas, setArenas] = useState([])
   const [loading, setLoading] = useState(true)
-  const [toast, setToast] = useState(null)
   const [selectedArena, setSelectedArena] = useState(null)
   const [showFaucet, setShowFaucet] = useState(false)
+  const [toast, setToast] = useState(null)
+  const [darkMode, setDarkMode] = useState(true)
+  
+  // 🆕 NEW: Real-time AI gaming state
+  const [showGamePlay, setShowGamePlay] = useState(false)
+  const [currentArena, setCurrentArena] = useState(null)
+  const [gameResults, setGameResults] = useState(null)
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true)
-      const result = await fetchArenas()
-      if (result.ok) {
-        setArenas(result.data)
-        showToast('Arenas loaded!', 'success')
-      }
-      setLoading(false)
-    }
-    load()
-  }, [])
+  // Stats
+  const [stats, setStats] = useState({
+    totalArenas: 0,
+    activeArenas: 0,
+    inProgress: 0,
+    completed: 0
+  })
 
-  useEffect(() => {
-    if (wallet) {
-      checkNetwork()
-      updateBalance()
-    }
-  }, [wallet])
-
-  const checkNetwork = async () => {
-    const onMonad = await isMonadNetwork()
-    setIsMonad(onMonad)
-    if (!onMonad) {
-      showToast('Please switch to Monad Testnet', 'warning')
-    }
+  // Show toast notification
+  const showToast = (message, type = 'info') => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 4000)
   }
 
-  const updateBalance = async () => {
-    if (wallet) {
-      const balance = await getMonBalance(wallet)
-      setMonBalance(balance)
-    }
-  }
-
+  // Connect wallet
   const connectWallet = async () => {
     if (!window.ethereum) {
-      showToast('MetaMask not detected!', 'error')
+      showToast('Please install MetaMask!', 'error')
       return
     }
+
     try {
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
       setWallet(accounts[0])
-      showToast('Wallet connected!', 'success')
+      showToast('Wallet connected! ✅', 'success')
       
-      const result = await switchToMonad()
-      if (result.success) {
-        setIsMonad(true)
-        showToast('Switched to Monad Testnet!', 'success')
+      // Check network
+      const isCorrectNetwork = await isMonadNetwork()
+      if (!isCorrectNetwork) {
+        showToast('Switching to Monad Testnet...', 'info')
+        await switchToMonad()
       }
-    } catch (err) {
+      
+      setIsMonad(true)
+      updateBalance()
+    } catch (error) {
+      console.error('Connect error:', error)
       showToast('Failed to connect wallet', 'error')
     }
   }
 
-  const handleSwitchNetwork = async () => {
-    const result = await switchToMonad()
-    if (result.success) {
-      setIsMonad(true)
-      showToast('Switched to Monad Testnet!', 'success')
-      updateBalance()
-    } else {
-      showToast('Failed to switch network', 'error')
+  // Update balance
+  const updateBalance = async () => {
+    if (!wallet) return
+    
+    try {
+      const balance = await getMonBalance(wallet)
+      setMonBalance(balance)
+    } catch (error) {
+      console.error('Balance error:', error)
     }
   }
 
-  const handleJoinArena = (arena) => {
+  // Fetch arenas from backend
+  const fetchArenas = async () => {
+    try {
+      const res = await fetch(`${BACKEND}/arenas`)
+      const data = await res.json()
+      
+      if (data.arenas) {
+        setArenas(data.arenas)
+        
+        // Calculate stats
+        const total = data.arenas.length
+        const active = data.arenas.filter(a => a.status === 'open').length
+        const inProgress = data.arenas.filter(a => a.status === 'in-progress').length
+        const completed = data.arenas.filter(a => a.status === 'completed').length
+        
+        setStats({ totalArenas: total, activeArenas: active, inProgress, completed })
+      }
+      
+      return { ok: true, data: data.arenas }
+    } catch (error) {
+      console.error('Fetch arenas error:', error)
+      showToast('Failed to load arenas', 'error')
+      return { ok: false }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 🆕 UPDATED: Join arena and start game
+  const handleJoinArena = async (arena) => {
     if (!wallet) {
       showToast('Please connect your wallet first!', 'error')
       setSelectedArena(null)
@@ -324,284 +314,374 @@ export default function App() {
       return
     }
 
-    if (parseFloat(monBalance) < parseFloat(arena.betAmount)) {
-      showToast('Insufficient MON balance! Get tokens from faucet.', 'error')
-      setSelectedArena(null)
-      setShowFaucet(true)
-      return
+    // Join arena on backend
+    try {
+      showToast('Joining arena...', 'info')
+      
+      const res = await fetch(`${BACKEND}/arenas/${arena.id}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerAddress: wallet })
+      })
+
+      const data = await res.json()
+
+      if (data.success) {
+        showToast('Joined! Loading AI game... 🤖', 'success')
+        setSelectedArena(null)
+        
+        // 🎮 OPEN GAME PLAY MODAL - THIS IS THE MAGIC!
+        setCurrentArena(arena)
+        setShowGamePlay(true)
+        
+        // Refresh arenas
+        const arenasResult = await fetchArenas()
+        if (arenasResult.ok) {
+          setArenas(arenasResult.data)
+        }
+      } else {
+        showToast(data.error || 'Failed to join arena', 'error')
+      }
+    } catch (error) {
+      console.error('Join error:', error)
+      showToast('Failed to join arena: ' + error.message, 'error')
     }
+  }
+
+  // Initial load
+  useEffect(() => {
+    fetchArenas()
     
-    showToast(`Joining ${arena.title}... (Smart contract integration coming!)`, 'info')
-    setSelectedArena(null)
-  }
+    // Refresh arenas every 30 seconds
+    const interval = setInterval(fetchArenas, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
-  const showToast = (message, type = 'info') => {
-    setToast({ message, type })
-    setTimeout(() => setToast(null), 4000)
-  }
+  // Check wallet on mount
+  useEffect(() => {
+    if (window.ethereum) {
+      window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
+        if (accounts[0]) {
+          setWallet(accounts[0])
+          isMonadNetwork().then(setIsMonad)
+          updateBalance()
+        }
+      })
+      
+      // Listen for account changes
+      window.ethereum.on('accountsChanged', (accounts) => {
+        setWallet(accounts[0] || '')
+        if (accounts[0]) updateBalance()
+      })
+      
+      // Listen for network changes
+      window.ethereum.on('chainChanged', () => {
+        window.location.reload()
+      })
+    }
+  }, [])
 
-  const stats = {
-    total: arenas.length,
-    active: arenas.filter(a => a.status === 'open').length,
-    inProgress: arenas.filter(a => a.status === 'in-progress').length,
-    completed: arenas.filter(a => a.status === 'completed').length
-  }
+  // Update balance periodically
+  useEffect(() => {
+    if (wallet && isMonad) {
+      updateBalance()
+      const interval = setInterval(updateBalance, 15000)
+      return () => clearInterval(interval)
+    }
+  }, [wallet, isMonad])
 
   return (
-    <div className="app">
-      {/* Ultra-Premium Navigation */}
-      <nav className="glass-premium" style={{
-        position: 'sticky', top: 0, zIndex: 100, padding: '20px 32px',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        borderBottom: '1px solid rgba(124, 58, 237, 0.3)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
-      }}>
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{
-            width: '48px', height: '48px', borderRadius: '12px',
-            background: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '24px', boxShadow: '0 8px 24px rgba(124, 58, 237, 0.5)',
-            position: 'relative'
-          }}>
+    <div style={{
+      minHeight: '100vh',
+      background: darkMode 
+        ? 'linear-gradient(180deg, #0F0F23 0%, #1A1A2E 100%)'
+        : 'linear-gradient(180deg, #F0F0F5 0%, #E5E5EA 100%)',
+      color: darkMode ? 'white' : '#1A1A2E',
+      position: 'relative', overflow: 'hidden'
+    }}>
+      {/* Background Effects */}
+      <div style={{
+        position: 'fixed', inset: 0, opacity: 0.15, pointerEvents: 'none',
+        background: `
+          radial-gradient(circle at 20% 20%, #7C3AED 0%, transparent 50%),
+          radial-gradient(circle at 80% 80%, #06B6D4 0%, transparent 50%),
+          radial-gradient(circle at 50% 50%, #F59E0B 0%, transparent 50%)
+        `,
+        filter: 'blur(100px)', zIndex: 0
+      }} />
+
+      {/* Animated Mesh Gradient */}
+      <div className="animated-mesh" />
+
+      {/* Content */}
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        
+        {/* Navigation */}
+        <nav className="glass-premium" style={{
+          position: 'sticky', top: 0, zIndex: 100,
+          padding: '20px 32px', margin: '16px auto', maxWidth: '1400px',
+          borderRadius: '24px', border: '2px solid rgba(124, 58, 237, 0.3)',
+          boxShadow: '0 24px 48px rgba(0,0,0,0.3), 0 0 80px rgba(124, 58, 237, 0.2)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+        }}>
+          {/* Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
-              position: 'absolute', inset: '-4px',
+              width: '48px', height: '48px', borderRadius: '12px',
               background: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
-              borderRadius: '14px', opacity: 0.3, filter: 'blur(16px)', zIndex: -1
-            }} />
-            ⚡
-          </div>
-          <div>
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '24px', boxShadow: '0 8px 24px rgba(124, 58, 237, 0.5)',
+              position: 'relative'
+            }}>
+              <div style={{
+                position: 'absolute', inset: '-4px',
+                background: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
+                borderRadius: '16px', opacity: 0.3, filter: 'blur(16px)', zIndex: -1
+              }} />
+              ⚡
+            </div>
             <div style={{
-              fontSize: '1.5rem', fontWeight: 800,
+              fontWeight: 800, fontSize: '1.5rem',
               fontFamily: 'Space Grotesk, sans-serif',
               background: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
             }}>
               ARENA AGENT
             </div>
-            <div style={{
-              fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)',
-              fontFamily: 'JetBrains Mono, monospace', fontWeight: 500
-            }}>
-              AI-Powered Gaming on Monad
-            </div>
           </div>
+
+          {/* Right Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* Network Warning */}
+            {wallet && !isMonad && (
+              <button className="btn-warning-premium" onClick={() => switchToMonad()}>
+                <AlertCircle size={18} />
+                Switch to Monad
+              </button>
+            )}
+
+            {/* Get MON Button */}
+            {wallet && (
+              <button className="btn-cyan-premium" onClick={() => setShowFaucet(true)}>
+                <Droplet size={18} />
+                Get MON
+              </button>
+            )}
+
+            {/* Wallet */}
+            {wallet ? (
+              <div className="glass-premium" style={{
+                padding: '12px 20px', borderRadius: '16px',
+                border: '2px solid rgba(124, 58, 237, 0.4)',
+                display: 'flex', flexDirection: 'column', gap: '4px'
+              }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  fontFamily: 'JetBrains Mono, monospace'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{
+                      width: '8px', height: '8px', borderRadius: '50%',
+                      background: isMonad ? '#22C55E' : '#F59E0B',
+                      boxShadow: isMonad ? '0 0 8px #22C55E' : '0 0 8px #F59E0B'
+                    }} />
+                    <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>
+                      {wallet.slice(0, 6)}...{wallet.slice(-4)}
+                    </span>
+                  </div>
+                  <div style={{
+                    fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)',
+                    fontWeight: 600
+                  }}>
+                    {monBalance} MON
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <button className="btn-primary-premium" onClick={connectWallet}>
+                <Wallet size={18} /> Connect Wallet
+              </button>
+            )}
+          </div>
+        </nav>
+
+        {/* Hero Section */}
+        <UltraPremiumHero onGetStarted={() => document.getElementById('arenas')?.scrollIntoView({ behavior: 'smooth' })} />
+        
+        {/* Stats Dashboard */}
+        <div style={{ padding: '0 32px', maxWidth: '1400px', margin: '0 auto' }}>
+          <UltraPremiumStats stats={stats} />
         </div>
         
-        {/* Actions */}
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-          {/* Network Warning */}
-          {wallet && !isMonad && (
-            <button 
-              onClick={handleSwitchNetwork}
-              className="btn-premium"
-              style={{
-                background: 'rgba(239, 68, 68, 0.2)',
-                border: '1px solid rgba(239, 68, 68, 0.4)',
-                color: '#EF4444'
-              }}
-            >
-              <AlertCircle size={18} />
-              Switch to Monad
-            </button>
-          )}
+        {/* Game Modes */}
+        <UltraPremiumGameModes />
+        
+        {/* AI Section */}
+        <UltraPremiumAISection />
 
-          {/* Faucet Button */}
-          <button 
-            onClick={() => setShowFaucet(true)}
-            className="btn-cyan-premium"
-          >
-            <Droplet size={18} />
-            Get MON
-          </button>
-
-          {/* Wallet */}
-          {wallet ? (
-            <div className="glass-premium" style={{
-              padding: '10px 20px', borderRadius: '9999px',
-              display: 'flex', alignItems: 'center', gap: '12px',
-              fontFamily: 'JetBrains Mono, monospace'
+        {/* Live Arenas */}
+        <div id="arenas" style={{ padding: '80px 32px', maxWidth: '1400px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '64px' }}>
+            <h2 style={{
+              fontFamily: 'Space Grotesk, sans-serif',
+              fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 800, marginBottom: '16px',
+              background: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
             }}>
-              <div style={{
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'flex-end', gap: '2px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{
-                    width: '8px', height: '8px', borderRadius: '50%',
-                    background: isMonad ? '#22C55E' : '#F59E0B',
-                    boxShadow: isMonad ? '0 0 8px #22C55E' : '0 0 8px #F59E0B'
-                  }} />
-                  <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>
-                    {wallet.slice(0, 6)}...{wallet.slice(-4)}
-                  </span>
-                </div>
-                <div style={{
-                  fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)',
-                  fontWeight: 600
-                }}>
-                  {monBalance} MON
-                </div>
-              </div>
-            </div>
-          ) : (
-            <button className="btn-primary-premium" onClick={connectWallet}>
-              <Wallet size={18} /> Connect Wallet
-            </button>
-          )}
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <UltraPremiumHero onGetStarted={() => document.getElementById('arenas')?.scrollIntoView({ behavior: 'smooth' })} />
-      
-      {/* Stats Dashboard */}
-      <div style={{ padding: '0 32px', maxWidth: '1400px', margin: '0 auto' }}>
-        <UltraPremiumStats stats={stats} />
-      </div>
-      
-      {/* Game Modes */}
-      <UltraPremiumGameModes />
-      
-      {/* AI Section */}
-      <UltraPremiumAISection />
-
-      {/* Live Arenas */}
-      <div id="arenas" style={{ padding: '80px 32px', maxWidth: '1400px', margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '64px' }}>
-          <h2 style={{
-            fontFamily: 'Space Grotesk, sans-serif',
-            fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 800, marginBottom: '16px',
-            background: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
-          }}>
-            Live Arenas
-          </h2>
-          <p style={{
-            fontSize: '1.25rem', color: 'rgba(255,255,255,0.7)',
-            maxWidth: '600px', margin: '0 auto'
-          }}>
-            Join active competitions or create your own gaming arena
-          </p>
-        </div>
-
-        {loading ? (
-          <UltraPremiumLoader text="Loading arenas..." />
-        ) : (
-          <UltraPremiumArenaGrid arenas={arenas} onArenaClick={setSelectedArena} />
-        )}
-      </div>
-
-      {/* Footer */}
-      <footer style={{
-        padding: '80px 32px', borderTop: '2px solid',
-        borderImage: 'linear-gradient(90deg, #7C3AED, #06B6D4, #F59E0B) 1',
-        background: 'linear-gradient(180deg, transparent 0%, rgba(26, 26, 46, 0.5) 100%)'
-      }}>
-        <div style={{
-          maxWidth: '1400px', margin: '0 auto',
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '64px'
-        }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-              <div style={{
-                width: '48px', height: '48px', borderRadius: '12px',
-                background: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px'
-              }}>⚡</div>
-              <div style={{
-                fontWeight: 800, fontSize: '1.5rem',
-                fontFamily: 'Space Grotesk, sans-serif',
-                background: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
-              }}>
-                ARENA AGENT
-              </div>
-            </div>
-            <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, fontSize: '1.05rem' }}>
-              Autonomous AI gaming agent with on-chain wagering. Built for Moltiverse Hackathon 2026.
+              Live Arenas
+            </h2>
+            <p style={{
+              fontSize: '1.25rem', color: 'rgba(255,255,255,0.7)',
+              maxWidth: '600px', margin: '0 auto'
+            }}>
+              Join active competitions or create your own gaming arena
             </p>
           </div>
-          
-          <div>
-            <div style={{ fontWeight: 700, marginBottom: '20px', fontSize: '1.25rem', color: 'white' }}>
-              Powered By
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'rgba(255,255,255,0.7)', fontSize: '1.05rem' }}>
-              <div>🤖 Llama 3.3 70B (Groq)</div>
-              <div>⛓️ Monad Testnet</div>
-              <div>⚛️ React + Vite</div>
-              <div>🎨 Ultra-Premium UI</div>
-            </div>
-          </div>
-          
-          <div>
-            <div style={{ fontWeight: 700, marginBottom: '20px', fontSize: '1.25rem', color: 'white' }}>
-              Hackathon
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'rgba(255,255,255,0.7)', fontSize: '1.05rem' }}>
-              <div>🦞 Moltiverse 2026</div>
-              <div>💰 $200K Prize Pool</div>
-              <div>📅 Feb 2-18, 2026</div>
-              <a 
-                href="https://moltiverse.dev" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                style={{
-                  color: '#06B6D4', textDecoration: 'none',
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  fontWeight: 600, transition: 'all 0.2s'
-                }}
-              >
-                moltiverse.dev <ExternalLink size={16} />
-              </a>
-            </div>
-          </div>
+
+          {loading ? (
+            <UltraPremiumLoader text="Loading arenas..." />
+          ) : (
+            <UltraPremiumArenaGrid arenas={arenas} onArenaClick={setSelectedArena} />
+          )}
         </div>
-        
-        <div style={{
-          maxWidth: '1400px', margin: '64px auto 0', paddingTop: '32px',
-          borderTop: '1px solid rgba(124, 58, 237, 0.3)',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          flexWrap: 'wrap', gap: '20px', fontSize: '1rem', color: 'rgba(255,255,255,0.6)'
+
+        {/* Footer */}
+        <footer style={{
+          padding: '80px 32px', borderTop: '2px solid',
+          borderImage: 'linear-gradient(90deg, #7C3AED, #06B6D4, #F59E0B) 1',
+          background: 'linear-gradient(180deg, transparent 0%, rgba(26, 26, 46, 0.5) 100%)'
         }}>
-          <div>© 2026 Arena Agent • Moltiverse Hackathon</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Sparkles size={18} color="#F59E0B" />
-            <span style={{ fontWeight: 600 }}>Built by BusyBrain Devs</span>
+          <div style={{
+            maxWidth: '1400px', margin: '0 auto',
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '64px'
+          }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                <div style={{
+                  width: '48px', height: '48px', borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px'
+                }}>⚡</div>
+                <div style={{
+                  fontWeight: 800, fontSize: '1.5rem',
+                  fontFamily: 'Space Grotesk, sans-serif',
+                  background: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
+                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
+                }}>
+                  ARENA AGENT
+                </div>
+              </div>
+              <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, fontSize: '1.05rem' }}>
+                Autonomous AI gaming agent with on-chain wagering. Built for Moltiverse Hackathon 2026.
+              </p>
+            </div>
+            
+            <div>
+              <div style={{ fontWeight: 700, marginBottom: '20px', fontSize: '1.25rem', color: 'white' }}>
+                Powered By
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'rgba(255,255,255,0.7)', fontSize: '1.05rem' }}>
+                <div>🤖 Llama 3.3 70B (Groq)</div>
+                <div>⛓️ Monad Testnet</div>
+                <div>⚛️ React + Vite</div>
+                <div>🎨 Ultra-Premium UI</div>
+              </div>
+            </div>
+            
+            <div>
+              <div style={{ fontWeight: 700, marginBottom: '20px', fontSize: '1.25rem', color: 'white' }}>
+                Hackathon
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'rgba(255,255,255,0.7)', fontSize: '1.05rem' }}>
+                <div>🦞 Moltiverse 2026</div>
+                <div>💰 $200K Prize Pool</div>
+                <div>📅 Feb 2-18, 2026</div>
+                <a 
+                  href="https://moltiverse.dev" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{
+                    color: '#06B6D4', textDecoration: 'none',
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    fontWeight: 600, transition: 'all 0.2s'
+                  }}
+                >
+                  moltiverse.dev <ExternalLink size={16} />
+                </a>
+              </div>
+            </div>
           </div>
-        </div>
-      </footer>
+          
+          <div style={{
+            maxWidth: '1400px', margin: '64px auto 0', paddingTop: '32px',
+            borderTop: '1px solid rgba(124, 58, 237, 0.3)',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            flexWrap: 'wrap', gap: '20px', fontSize: '1rem', color: 'rgba(255,255,255,0.6)'
+          }}>
+            <div>© 2026 Arena Agent • Moltiverse Hackathon</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Sparkles size={18} color="#F59E0B" />
+              <span style={{ fontWeight: 600 }}>Built by BusyBrain Devs</span>
+            </div>
+          </div>
+        </footer>
 
-      {/* Modals */}
-      {selectedArena && (
-        <UltraPremiumArenaModal 
-          arena={selectedArena}
-          onClose={() => setSelectedArena(null)}
-          onJoin={handleJoinArena}
-        />
-      )}
+        {/* Modals */}
+        {selectedArena && (
+          <UltraPremiumArenaModal 
+            arena={selectedArena}
+            onClose={() => setSelectedArena(null)}
+            onJoin={handleJoinArena}
+          />
+        )}
 
-      {showFaucet && <FaucetModal onClose={() => setShowFaucet(false)} />}
+        {showFaucet && <FaucetModal onClose={() => setShowFaucet(false)} />}
 
-      {/* Toast */}
-      {toast && (
-        <div style={{
-          position: 'fixed', bottom: '32px', right: '32px', padding: '20px 28px',
-          background: toast.type === 'error' ? 'rgba(239, 68, 68, 0.95)' : 
-                      toast.type === 'success' ? 'rgba(34, 197, 94, 0.95)' : 
-                      toast.type === 'warning' ? 'rgba(245, 158, 11, 0.95)' :
-                      'rgba(124, 58, 237, 0.95)',
-          backdropFilter: 'blur(24px)', borderRadius: '16px',
-          boxShadow: '0 12px 40px rgba(0,0,0,0.5)', color: 'white',
-          fontWeight: 600, zIndex: 1000, animation: 'fadeInUp 0.4s ease-out',
-          fontSize: '1.05rem', border: '1px solid rgba(255,255,255,0.1)'
-        }}>
-          {toast.message}
-        </div>
-      )}
+        {/* 🆕 NEW: Game Play Modal */}
+        {showGamePlay && currentArena && (
+          <GamePlayModal 
+            arena={currentArena}
+            playerAddress={wallet}
+            onClose={() => {
+              setShowGamePlay(false)
+              setCurrentArena(null)
+            }}
+            onComplete={(results) => {
+              setShowGamePlay(false)
+              setGameResults(results)
+            }}
+          />
+        )}
+
+        {/* 🆕 NEW: Results Modal */}
+        {gameResults && (
+          <GameResultsModal 
+            arena={currentArena}
+            results={gameResults}
+            onClose={() => {
+              setGameResults(null)
+              setCurrentArena(null)
+            }}
+          />
+        )}
+
+        {/* Toast */}
+        {toast && (
+          <div style={{
+            position: 'fixed', bottom: '32px', right: '32px', padding: '20px 28px',
+            background: toast.type === 'error' ? 'rgba(239, 68, 68, 0.95)' : 
+                        toast.type === 'success' ? 'rgba(34, 197, 94, 0.95)' : 
+                        toast.type === 'warning' ? 'rgba(245, 158, 11, 0.95)' :
+                        'rgba(124, 58, 237, 0.95)',
+            backdropFilter: 'blur(24px)', borderRadius: '16px',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.5)', color: 'white',
+            fontWeight: 600, zIndex: 1000, animation: 'fadeInUp 0.4s ease-out',
+            fontSize: '1.05rem', border: '1px solid rgba(255,255,255,0.1)'
+          }}>
+            {toast.message}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

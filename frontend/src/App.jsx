@@ -1,6 +1,10 @@
+// UPDATED APP.JSX WITH PREMIUM "SWITCH TO MONAD" BUTTON
+// This is your complete App.jsx with the improved navbar
+// Copy this entire file to replace your current App.jsx
+
 // ═══════════════════════════════════════════════════════════════
-// ARENA AGENT - ULTRA PREMIUM FINAL VERSION + REAL-TIME AI
-// The most premium Web3 gaming interface with LIVE AI gaming
+// ARENA AGENT - ULTRA PREMIUM + REAL-TIME AI
+// Ultra-premium interface with LIVE AI gaming + Premium Navbar
 // ═══════════════════════════════════════════════════════════════
 
 import { GamePlayModal, GameResultsModal } from './GamePlayModal'
@@ -214,7 +218,7 @@ export default function App() {
   const [toast, setToast] = useState(null)
   const [darkMode, setDarkMode] = useState(true)
   
-  // 🆕 NEW: Real-time AI gaming state
+  // Real-time AI gaming state
   const [showGamePlay, setShowGamePlay] = useState(false)
   const [currentArena, setCurrentArena] = useState(null)
   const [gameResults, setGameResults] = useState(null)
@@ -300,7 +304,7 @@ export default function App() {
     }
   }
 
-  // 🆕 UPDATED: Join arena and start game
+  // Join arena and start game
   const handleJoinArena = async (arena) => {
     if (!wallet) {
       showToast('Please connect your wallet first!', 'error')
@@ -330,7 +334,7 @@ export default function App() {
         showToast('Joined! Loading AI game... 🤖', 'success')
         setSelectedArena(null)
         
-        // 🎮 OPEN GAME PLAY MODAL - THIS IS THE MAGIC!
+        // Open game play modal
         setCurrentArena(arena)
         setShowGamePlay(true)
         
@@ -416,7 +420,7 @@ export default function App() {
       {/* Content */}
       <div style={{ position: 'relative', zIndex: 1 }}>
         
-        {/* Navigation */}
+        {/* PREMIUM NAVIGATION */}
         <nav className="glass-premium" style={{
           position: 'sticky', top: 0, zIndex: 100,
           padding: '20px 32px', margin: '16px auto', maxWidth: '1400px',
@@ -452,53 +456,204 @@ export default function App() {
 
           {/* Right Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {/* Network Warning */}
+            
+            {/* 🆕 PREMIUM Switch to Monad Button - CLICKABLE & STYLED! */}
             {wallet && !isMonad && (
-              <button className="btn-warning-premium" onClick={() => switchToMonad()}>
-                <AlertCircle size={18} />
-                Switch to Monad
+              <button 
+                onClick={async () => {
+                  showToast('Switching to Monad Testnet...', 'info')
+                  const result = await switchToMonad()
+                  if (result.success) {
+                    setIsMonad(true)
+                    showToast('Switched to Monad Testnet! ✅', 'success')
+                    updateBalance()
+                  } else {
+                    showToast('Failed to switch network', 'error')
+                  }
+                }}
+                className="glass-premium"
+                style={{
+                  padding: '12px 20px',
+                  borderRadius: '16px',
+                  border: '2px solid rgba(245, 158, 11, 0.5)',
+                  background: 'rgba(245, 158, 11, 0.15)',
+                  backdropFilter: 'blur(24px) saturate(180%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 8px 24px rgba(245, 158, 11, 0.25)',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)'
+                  e.currentTarget.style.boxShadow = '0 12px 32px rgba(245, 158, 11, 0.4)'
+                  e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.7)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(245, 158, 11, 0.25)'
+                  e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.5)'
+                }}
+              >
+                {/* Animated pulse background */}
+                <div style={{
+                  position: 'absolute',
+                  inset: '-2px',
+                  background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(251, 191, 36, 0.3))',
+                  borderRadius: '18px',
+                  opacity: 0.5,
+                  filter: 'blur(12px)',
+                  animation: 'pulse 2s ease-in-out infinite',
+                  zIndex: -1
+                }} />
+
+                {/* Warning icon with pulse */}
+                <div style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: '#F59E0B',
+                  boxShadow: '0 0 12px #F59E0B, 0 0 24px rgba(245, 158, 11, 0.5)',
+                  animation: 'pulse 1.5s ease-in-out infinite'
+                }} />
+
+                <AlertCircle size={18} color="#F59E0B" />
+                
+                <span style={{
+                  fontWeight: 700,
+                  fontSize: '0.95rem',
+                  color: '#FCD34D',
+                  fontFamily: 'Space Grotesk, sans-serif',
+                  letterSpacing: '0.02em'
+                }}>
+                  Switch to Monad
+                </span>
               </button>
             )}
 
-            {/* Get MON Button */}
-            {wallet && (
-              <button className="btn-cyan-premium" onClick={() => setShowFaucet(true)}>
-                <Droplet size={18} />
-                Get MON
+            {/* Get MON Button - Premium Style */}
+            {wallet && isMonad && (
+              <button 
+                onClick={() => setShowFaucet(true)}
+                className="glass-premium"
+                style={{
+                  padding: '12px 20px',
+                  borderRadius: '16px',
+                  border: '2px solid rgba(6, 182, 212, 0.5)',
+                  background: 'rgba(6, 182, 212, 0.15)',
+                  backdropFilter: 'blur(24px) saturate(180%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 8px 24px rgba(6, 182, 212, 0.25)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)'
+                  e.currentTarget.style.boxShadow = '0 12px 32px rgba(6, 182, 212, 0.4)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(6, 182, 212, 0.25)'
+                }}
+              >
+                <Droplet size={18} color="#06B6D4" />
+                <span style={{
+                  fontWeight: 700,
+                  fontSize: '0.95rem',
+                  color: '#06B6D4',
+                  fontFamily: 'Space Grotesk, sans-serif'
+                }}>
+                  Get MON
+                </span>
               </button>
             )}
 
-            {/* Wallet */}
+            {/* Wallet Display - Premium Style */}
             {wallet ? (
               <div className="glass-premium" style={{
-                padding: '12px 20px', borderRadius: '16px',
-                border: '2px solid rgba(124, 58, 237, 0.4)',
-                display: 'flex', flexDirection: 'column', gap: '4px'
+                padding: '12px 20px',
+                borderRadius: '16px',
+                border: '2px solid rgba(124, 58, 237, 0.5)',
+                background: 'rgba(124, 58, 237, 0.1)',
+                backdropFilter: 'blur(24px) saturate(180%)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+                boxShadow: '0 8px 24px rgba(124, 58, 237, 0.3)'
               }}>
                 <div style={{
-                  display: 'flex', alignItems: 'center', gap: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
                   fontFamily: 'JetBrains Mono, monospace'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{
-                      width: '8px', height: '8px', borderRadius: '50%',
-                      background: isMonad ? '#22C55E' : '#F59E0B',
-                      boxShadow: isMonad ? '0 0 8px #22C55E' : '0 0 8px #F59E0B'
-                    }} />
-                    <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>
-                      {wallet.slice(0, 6)}...{wallet.slice(-4)}
-                    </span>
-                  </div>
+                  {/* Status Indicator */}
                   <div style={{
-                    fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)',
-                    fontWeight: 600
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: isMonad ? '#22C55E' : '#F59E0B',
+                    boxShadow: isMonad 
+                      ? '0 0 8px #22C55E, 0 0 16px rgba(34, 197, 94, 0.5)' 
+                      : '0 0 8px #F59E0B, 0 0 16px rgba(245, 158, 11, 0.5)',
+                    animation: 'pulse 2s ease-in-out infinite'
+                  }} />
+                  
+                  {/* Wallet Address */}
+                  <span style={{
+                    fontWeight: 600,
+                    fontSize: '0.95rem',
+                    color: 'white'
                   }}>
-                    {monBalance} MON
-                  </div>
+                    {wallet.slice(0, 6)}...{wallet.slice(-4)}
+                  </span>
+                </div>
+                
+                {/* Balance */}
+                <div style={{
+                  fontSize: '0.75rem',
+                  color: 'rgba(255,255,255,0.6)',
+                  fontWeight: 600,
+                  fontFamily: 'JetBrains Mono, monospace',
+                  paddingLeft: '16px'
+                }}>
+                  {monBalance} MON
                 </div>
               </div>
             ) : (
-              <button className="btn-primary-premium" onClick={connectWallet}>
+              <button 
+                className="btn-primary-premium" 
+                onClick={connectWallet}
+                style={{
+                  padding: '12px 24px',
+                  borderRadius: '16px',
+                  background: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
+                  border: 'none',
+                  color: 'white',
+                  fontWeight: 700,
+                  fontSize: '0.95rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 8px 24px rgba(124, 58, 237, 0.5)',
+                  fontFamily: 'Space Grotesk, sans-serif'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)'
+                  e.currentTarget.style.boxShadow = '0 12px 32px rgba(124, 58, 237, 0.6)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(124, 58, 237, 0.5)'
+                }}
+              >
                 <Wallet size={18} /> Connect Wallet
               </button>
             )}
@@ -637,7 +792,7 @@ export default function App() {
 
         {showFaucet && <FaucetModal onClose={() => setShowFaucet(false)} />}
 
-        {/* 🆕 NEW: Game Play Modal */}
+        {/* Game Play Modal */}
         {showGamePlay && currentArena && (
           <GamePlayModal 
             arena={currentArena}
@@ -653,7 +808,7 @@ export default function App() {
           />
         )}
 
-        {/* 🆕 NEW: Results Modal */}
+        {/* Results Modal */}
         {gameResults && (
           <GameResultsModal 
             arena={currentArena}
